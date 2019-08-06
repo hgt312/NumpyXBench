@@ -17,7 +17,7 @@ By numpy categories of operators, this can be obtain from [deepnumpy-doc](https:
 
 ### API & Design
 
-**Sample code: **
+**Sample code:**
 
 ```python
 from NumpyXBench.operators import Add
@@ -48,12 +48,12 @@ res = run_binary_op_benchmark(op, config, 'forward')
 └── tests
 ```
 
-**Op package: **in directory `operators`, ops with different types in different files, an Op object only need one argument, `backend`.
+**Op package:** in directory `operators`, ops with different types in different files, an Op object only need one argument, `backend`.
 
-**Config package: **get information of input arguments: **input shape, dtype …...**
+**Config package:** get information of input arguments: **input shape, dtype …...**
 
-**Utils: **functions to do benchmarks (**single op, op cross frameworks, ops on single framework, and ops on frameworks**).
+**Utils:** functions to do benchmarks (**single op, op cross frameworks, ops on single framework, and ops on frameworks**).
 
-**Metrics: **TBD
+**Metrics:** TBD
 
 **Others:** need things to collect necessary information for each operator, register in op class/store in file or database
