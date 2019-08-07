@@ -1,1 +1,2 @@
-from .binary_ops import *
+from .common_ops import *
+from .la_ops import *
