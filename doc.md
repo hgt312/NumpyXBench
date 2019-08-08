@@ -20,7 +20,7 @@ from NumpyXBench.utils import run_binary_op_benchmark
 
 op = Add(backend='numpy')
 config = get_random_size_config()
-res = run_binary_op_benchmark(op, config, 'forward')
+res = run_binary_op_benchmark(op, config, 'both')
 ```
 
 ### Ops
@@ -65,7 +65,9 @@ We should support these frameworks:
 └── samples
 ```
 
-**Blob package:** Blob package simply store an op and its default config in a python tuple.
+**Blob package:** Blob package simply store an op and its default config-gen function and default benchmark function in a python tuple. 
+
+For example, `add_blob = (ops.Add, get_random_size_config, run_binary_op_benchmark)`.
 
 **Op package:** in directory `operators`, ops with different numpy modules in different files, an Op object only need one argument, `backend`. All the ops under numpy should in `common_ops.py`, and linear algebra ops (under numpy.linalg) should be written in `la_ops.py` …...
 
@@ -98,6 +100,6 @@ class CommonOp(object):
 
 **Utils:** functions to do benchmarks (**single op, op cross frameworks, ops on single framework, and ops on frameworks**).
 
-**Metrics:** speed (necessary), others TBD
+**Metrics:** speed, coverage (necessary), others TBD
 
-**Others:** need test, docgen and visualization.
+**Others:** need test, doc-gen, logging, report-gen, and visualization.
