@@ -1,12 +1,15 @@
 import functools
 
-import numpy
-import mxnet
-import torch
+try:
+    import numpy
+    import mxnet
+    import torch
+except ImportError:
+    pass
 
 from .metrics import *
 
-# __all__ = ['run_binary_op_benchmark', 'run_op_frameworks_benchmark']
+__all__ = ['run_binary_op_benchmark', 'run_op_frameworks_benchmark']
 
 torch_type_switch = {
     'float32': torch.float32,

@@ -1,8 +1,11 @@
 import sys
 
-import numpy
-import mxnet
-import torch
+try:
+    import numpy
+    import mxnet
+    import torch
+except ImportError:
+    pass
 from jinja2 import Template
 
 __all__ = []
