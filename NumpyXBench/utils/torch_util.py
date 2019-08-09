@@ -13,9 +13,6 @@ torch_type_switch = {
 def prepare_torch_inputs(num_input, config, grad=False, device=None):
     input_shape = config['shape']
     dtype = config['dtype']
-    inputs = []
-    for _ in range(num_input):
-        inputs.append(torch.randn(*input_shape,
-                                  dtype=torch_type_switch[dtype],
-                                  requires_grad=grad))
+    inputs = [torch.randn(*input_shape, dtype=torch_type_switch[dtype], requires_grad=grad) for _ in range(num_input)]
+
     return inputs

@@ -36,6 +36,7 @@ def run_binary_op_benchmark(op, config, mode='forward', warmup=10, runs=25):
                 with mxnet.autograd.record():
                     result = func(*prepare_mxnet_inputs(2, config, True))
                 result.backward()
+
             both_time = get_time_metric(run_graph, warmup, runs)
             return both_time, config
 
@@ -44,8 +45,6 @@ def run_op_frameworks_benchmark(opc, config_func, benchmark_func, backends, mode
     if not isinstance(backends, list):
         raise Warning("Argument 'backends' must be a list")
     config = config_func()
-    result = {'config': config}
-    for backend in backends:
-        op = opc(backend)
-        result[backend] = benchmark_func(op, config, mode, warmup, runs)[0]
+    result = {backend: benchmark_func(opc(backend), config, mode, warmup, runs)[0] for backend in backends}
+    result['config'] = config
     return result
