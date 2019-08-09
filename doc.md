@@ -8,7 +8,7 @@ from NumpyXBench.utils import run_binary_op_benchmark
 
 op = add_blob[0](backend='mx')
 config = add_blob[1]()
-res = run_binary_op_benchmark(op, config, 'forward')
+res = run_binary_op_benchmark(op, config, 'both')
 ```
 
 2. Another more flexible way.
@@ -20,7 +20,16 @@ from NumpyXBench.utils import run_binary_op_benchmark
 
 op = Add(backend='numpy')
 config = get_random_size_config()
-res = run_binary_op_benchmark(op, config, 'both')
+res = run_binary_op_benchmark(op, config, 'forward')
+```
+
+3. On multiple frameworks.
+
+```python
+from NumpyXBench.blobs import add_blob
+from NumpyXBench.utils import run_op_frameworks_benchmark
+
+res = run_op_frameworks_benchmark(*add_blob, ['mx', 'np'], 'forward')
 ```
 
 ### Ops
