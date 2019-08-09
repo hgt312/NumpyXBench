@@ -8,18 +8,11 @@ except ImportError:
     pass
 
 from jinja2 import Template
+from NumpyXBench.utils.common import *
 
 __all__ = []
 
 common_op_list = ['add', 'subtract', 'multiply', 'divide']
-
-module_switcher = {
-    'numpy': 'numpy',
-    'np': 'numpy',
-    'mxnet': 'mxnet.numpy',
-    'pytorch': 'torch',
-    'torch': 'torch',
-}
 
 
 class CommonOp(object):
@@ -55,7 +48,7 @@ class CommonOp(object):
         try:
             module = sys.modules[module_switcher[self._backend]]
         except ValueError:
-            raise NotImplementedError(f'Backend: {self._backend} not supported now!')
+            raise NotImplementedError(f'Backend: {self._backend} not support or not installed!')
 
         return getattr(module, self._name)
 
