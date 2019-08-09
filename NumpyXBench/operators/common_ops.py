@@ -6,7 +6,9 @@ try:
     import torch
 except ImportError:
     pass
+
 from jinja2 import Template
+from NumpyXBench.utils.common import *
 
 __all__ = []
 
@@ -43,14 +45,11 @@ class CommonOp(object):
         """
         Get the forward function of the Op.
         """
-        if self._backend in ['numpy', 'np']:
-            module = sys.modules['numpy']
-        elif self._backend in ['mxnet', 'mx']:
-            module = sys.modules['mxnet.numpy']
-        elif self._backend in ['pytorch', 'torch']:
-            module = sys.modules['torch']
-        else:
-            raise NotImplementedError("Backend not supported now!")
+        try:
+            module = sys.modules[module_switcher[self._backend]]
+        except ValueError:
+            raise NotImplementedError(f'Backend: {self._backend} not support or not installed!')
+
         return getattr(module, self._name)
 
 
