@@ -6,11 +6,20 @@ try:
     import torch
 except ImportError:
     pass
+
 from jinja2 import Template
 
 __all__ = []
 
 common_op_list = ['add', 'subtract', 'multiply', 'divide']
+
+module_switcher = {
+    'numpy': 'numpy',
+    'np': 'numpy',
+    'mxnet': 'mxnet.numpy',
+    'pytorch': 'torch',
+    'torch': 'torch',
+}
 
 
 class CommonOp(object):
@@ -43,14 +52,11 @@ class CommonOp(object):
         """
         Get the forward function of the Op.
         """
-        if self._backend in ['numpy', 'np']:
-            module = sys.modules['numpy']
-        elif self._backend in ['mxnet', 'mx']:
-            module = sys.modules['mxnet.numpy']
-        elif self._backend in ['pytorch', 'torch']:
-            module = sys.modules['torch']
-        else:
-            raise NotImplementedError("Backend not supported now!")
+        try:
+            module = sys.modules[module_switcher[self._backend]]
+        except ValueError:
+            raise NotImplementedError(f'Backend: {self._backend} not supported now!')
+
         return getattr(module, self._name)
 
 
