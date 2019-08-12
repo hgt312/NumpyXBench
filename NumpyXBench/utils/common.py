@@ -1,4 +1,4 @@
-module_switcher = {
+backend_switcher = {
     'numpy': 'numpy',
     'np': 'numpy',
     'mxnet': 'mxnet.numpy',

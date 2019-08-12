@@ -13,5 +13,3 @@ except ImportError:
     print("Cannot use pytorch!")
 
 __version__ = '0.0.1'
-
-

@@ -1,18 +1,17 @@
+import inspect
 import sys
 
 try:
-    import numpy
     import mxnet
     import torch
 except ImportError:
     pass
-
+import numpy
 from jinja2 import Template
-from NumpyXBench.utils.common import *
+
+from ..utils.common import backend_switcher
 
 __all__ = []
-
-common_op_list = ['add', 'subtract', 'multiply', 'divide']
 
 
 class CommonOp(object):
@@ -46,7 +45,7 @@ class CommonOp(object):
         Get the forward function of the Op.
         """
         try:
-            module = sys.modules[module_switcher[self._backend]]
+            module = sys.modules[backend_switcher[self._backend]]
         except ValueError:
             raise NotImplementedError(f'Backend: {self._backend} not support or not installed!')
 
@@ -61,6 +60,18 @@ class {{ name | capitalize }}(CommonOp):
 template = Template(template_code)
 
 
+def _gen_common_op_list():
+    common_op_list = []
+    for obj_name in dir(numpy):
+        obj = getattr(numpy, obj_name)
+        if any([inspect.isbuiltin(obj),
+                inspect.isfunction(obj),
+                isinstance(obj, numpy.ufunc)]):
+            common_op_list.append(obj_name)
+    common_op_list = [i for i in common_op_list if not i.startswith('_')]
+    return common_op_list
+
+
 def _gen_binary_op_class(name):
     local = {}
     exec(template.render(name=name), None, local)  # pylint: disable=exec-used
@@ -72,5 +83,6 @@ def _gen_binary_op_class(name):
     current_module.__all__.append(op_name)
 
 
-for op in common_op_list:
-    _gen_binary_op_class(op)
+for op in _gen_common_op_list():
+    if op not in __all__:
+        _gen_binary_op_class(op)

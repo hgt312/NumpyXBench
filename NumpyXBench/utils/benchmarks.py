@@ -7,7 +7,7 @@ try:
 except ImportError:
     pass
 
-from .common import *
+from .common import backend_switcher
 from .metrics import *
 from .mxnet_util import *
 from .numpy_util import *
@@ -19,14 +19,14 @@ __all__ = ['run_binary_op_benchmark', 'run_op_frameworks_benchmark']
 def run_binary_op_benchmark(op, config, mode='forward', warmup=10, runs=25):
     backend = op.get_backend()
     # print('Backend: {}'.format(backend))
-    if module_switcher[backend] == 'numpy':
+    if backend_switcher[backend] == 'numpy':
         func = op.get_forward_func()
         func = functools.partial(func, *prepare_numpy_inputs(2, config))
         forward_time, _ = get_time_metric(func)
         if mode != 'forward':
             raise Warning("Numpy has no backward")
         return forward_time, config
-    elif module_switcher[backend] == 'mxnet.numpy':
+    elif backend_switcher[backend] == 'mxnet.numpy':
         func = op.get_forward_func()
         if mode == 'forward':
             func = functools.partial(func, *prepare_mxnet_inputs(2, config, False))

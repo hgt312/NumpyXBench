@@ -31,4 +31,3 @@ def get_random_size_config():
     config = config_space.sample_configuration()
     shape = (config.get('size'),)
     return {'shape': shape, 'dtype': config.get('dtype')}
-

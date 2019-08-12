@@ -3,12 +3,13 @@ try:
 except ImportError:
     pass
 
+from .numpy_util import prepare_numpy_inputs
+
 
 def prepare_mxnet_inputs(num_input, config, grad=False, device=None):
-    input_shape = config['shape']
     dtype = config['dtype']
-    inputs = [mxnet.numpy.random.normal(size=input_shape, dtype=dtype) for _ in range(num_input)]
-
+    inputs = prepare_numpy_inputs(num_input, config)
+    inputs = [mxnet.numpy.array(i, dtype=dtype) for i in inputs]
     if grad:
         for i in inputs:
             i.attach_grad()
