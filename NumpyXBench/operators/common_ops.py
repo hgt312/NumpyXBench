@@ -46,8 +46,8 @@ class CommonOp(object):
         """
         try:
             module = sys.modules[backend_switcher[self._backend]]
-        except ValueError:
-            raise NotImplementedError(f'Backend: {self._backend} not support or not installed!')
+        except AttributeError:
+            raise Warning(f'Backend: {self._backend} not support or not installed!')
 
         return getattr(module, self._name)
 
