@@ -1,6 +1,6 @@
 try:
     import mxnet
-except ImportError:
+except Exception:
     pass
 
 from .numpy_util import prepare_numpy_inputs

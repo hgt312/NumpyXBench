@@ -4,7 +4,7 @@ try:
     import numpy
     import mxnet
     import torch
-except ImportError:
+except Exception:
     pass
 
 from .common import backend_switcher

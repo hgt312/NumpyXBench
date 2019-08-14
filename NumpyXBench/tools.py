@@ -4,5 +4,22 @@ from .utils.mxnet_util import *
 
 
 def test_mxnet_coverage():
-    op_list = dir(operators)
-    print(len(op_list), len(set(op_list)))
+    res = {'passed': [], 'failed': []}
+    op_list = [i for i in dir(operators) if i[0].isupper()]
+    print('Start MXNet NumPy coverage test!')
+    print('#' * 60)
+    for op_name in op_list:
+        op = getattr(operators, op_name)('mx')
+        flag = True
+        try:
+            op.get_forward_func()
+            res['passed'].append(op_name.lower())
+        except (AttributeError, KeyError, Warning) as e:
+            flag = False
+            res['failed'].append(op_name.lower())
+        print("'{0}' under {1} check {2}.".format(op_name.lower(),
+                                                  op.__module__.split('.')[-1],
+                                                  'passed' if flag else 'failed'))
+    print('#' * 60)
+    print('End MXNet NumPy coverage test!')
+    return res

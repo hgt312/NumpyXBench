@@ -1,3 +1,5 @@
+# Document
+
 ### Sample code:
 
 1. Obtain an op from a blob which contains its default config.
@@ -80,7 +82,7 @@ For example, `add_blob = (ops.Add, get_random_size_config, run_binary_op_benchma
 
 **Op package:** in directory `operators`, ops with different numpy modules in different files, an Op object only need one argument, `backend`. All the ops under numpy should in `common_ops.py`, and linear algebra ops (under numpy.linalg) should be written in `la_ops.py` …...
 
-In this part, most of ops can be generate by template. If the path to get the op function in each framework has the same pattern, we can add it by simply append its name in a list. Sample code is shown below, look [code](./NumpyXBench/operators/common_ops.py) to get details.
+In this part, most of ops can be generate by template. If the path to get the op function in each framework has the same pattern, we can add it by simply append its name in a list. Sample code is shown below, look [code](../NumpyXBench/operators/common_ops.py) to get details.
 
 ```python
 common_op_list = ['add', 'subtract', 'multiply', 'divide'] # add op to here

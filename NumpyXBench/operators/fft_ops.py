@@ -4,7 +4,7 @@ import sys
 try:
     import mxnet
     import torch
-except ImportError:
+except Exception:
     pass
 import numpy
 from jinja2 import Template
@@ -46,7 +46,7 @@ class FFTOp(object):
         """
         try:
             module = sys.modules['.'.join([backend_switcher[self._backend], 'fft'])]
-        except AttributeError:
+        except (AttributeError, KeyError) as e:
             raise Warning(f'Backend: {self._backend} not support or not installed!')
 
         return getattr(module, self._name)
