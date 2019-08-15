@@ -5,6 +5,7 @@ except Exception:
 
 from .numpy_util import prepare_numpy_inputs
 
+__all__ = ['prepare_torch_inputs']
 
 torch_type_switch = {
     'float16': torch.float16,

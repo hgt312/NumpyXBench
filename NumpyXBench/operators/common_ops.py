@@ -11,7 +11,7 @@ from jinja2 import Template
 
 from ..utils.common import backend_switcher
 
-__all__ = []
+__all__ = ['CommonOp']
 
 
 class CommonOp(object):
@@ -39,6 +39,12 @@ class CommonOp(object):
         Get the current used backend of the Op.
         """
         return self._backend
+
+    def get_name(self):
+        """
+        Get the name of the Op.
+        """
+        return self._name
 
     def get_forward_func(self):
         """

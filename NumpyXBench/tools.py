@@ -5,7 +5,7 @@ from .utils.mxnet_util import *
 
 def test_mxnet_coverage():
     res = {'passed': [], 'failed': []}
-    op_list = [i for i in dir(operators) if i[0].isupper()]
+    op_list = [i for i in dir(operators) if i[0].isupper() and i != 'CommonOp']
     print('Start MXNet NumPy coverage test!')
     print('#' * 60)
     for op_name in op_list:

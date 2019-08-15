@@ -9,36 +9,17 @@ except Exception:
 import numpy
 from jinja2 import Template
 
+from .common_ops import CommonOp
 from ..utils.common import backend_switcher
 
 __all__ = []
 
 
-class FFTOp(object):
+class FFTOp(CommonOp):
     """
     Discrete Fourier Transform operator class, used to generate classes of operator which
     under namespace `numpy.fft` automatically.
     """
-
-    def __init__(self, backend='numpy', name=None):
-        """
-        Init function
-
-        Parameters
-        ----------
-        backend : str
-            Name of the backend.
-        name : str
-            Name of the operator.
-        """
-        self._backend = backend
-        self._name = name
-
-    def get_backend(self):
-        """
-        Get the current used backend of the Op.
-        """
-        return self._backend
 
     def get_forward_func(self):
         """
