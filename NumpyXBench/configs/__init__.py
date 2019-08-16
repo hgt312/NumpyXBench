@@ -12,7 +12,7 @@ __all__ = ['get_random_shape_config', 'get_random_size_config', 'get_range_creat
 
 
 def _gen_random_shape(ndim):
-    high = math.ceil(math.pow(10**9, 1/ndim))
+    high = math.ceil(math.pow(10**8, 1/ndim))
     shape = nd.randint(low=1, high=high, size=ndim)
     return tuple(shape)
 
@@ -70,5 +70,6 @@ def get_random_withaxis_config(dtypes):
     config = config_space.sample_configuration()
     dtype = config.get('dtype')
     # random axis
-    axis = random.randint(0, ndim - 1)
+    axis = random.randint(0, ndim)
+    axis = None if axis == ndim else axis
     return {'shape': shape, 'dtype': dtype, 'axis': axis}
