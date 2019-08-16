@@ -1,10 +1,14 @@
 import math
+import random
 
 import ConfigSpace as cs
 import ConfigSpace.hyperparameters as csh
 from numpy import random as nd
 
-__all__ = ['get_random_shape_config', 'get_random_size_config', 'get_range_creation_config']
+from .config_spaces import *
+
+__all__ = ['get_random_shape_config', 'get_random_size_config', 'get_range_creation_config',
+           'get_random_withaxis_config']
 
 
 def _gen_random_shape(ndim):
@@ -14,36 +18,57 @@ def _gen_random_shape(ndim):
 
 
 def get_random_shape_config(dtypes):
-    config_space = cs.ConfigurationSpace()
-    ndim = csh.UniformIntegerHyperparameter('ndim', lower=2, upper=32, log=False)
-    dtype = csh.CategoricalHyperparameter('dtype', choices=dtypes)
-    config_space.add_hyperparameters([ndim, dtype])
+    config_space = random_ndim_cs
     config = config_space.sample_configuration()
     shape = _gen_random_shape(config.get('ndim'))
-    return {'shape': shape, 'dtype': config.get('dtype')}
+    # random dtype
+    config_space = cs.ConfigurationSpace()
+    config_space.add_hyperparameter(csh.CategoricalHyperparameter('dtype', choices=dtypes))
+    config = config_space.sample_configuration()
+    dtype = config.get('dtype')
+    return {'shape': shape, 'dtype': dtype}
 
 
 def get_random_size_config(dtypes):
-    config_space = cs.ConfigurationSpace()
-    size = csh.UniformIntegerHyperparameter('size', lower=1, upper=4096**2, log=True)
-    dtype = csh.CategoricalHyperparameter('dtype', choices=dtypes)
-    config_space.add_hyperparameters([size, dtype])
+    config_space = random_size_cs
     config = config_space.sample_configuration()
     shape = (config.get('size'),)
-    return {'shape': shape, 'dtype': config.get('dtype')}
+    # random dtype
+    config_space = cs.ConfigurationSpace()
+    config_space.add_hyperparameter(csh.CategoricalHyperparameter('dtype', choices=dtypes))
+    config = config_space.sample_configuration()
+    dtype = config.get('dtype')
+    return {'shape': shape, 'dtype': dtype}
 
 
 def get_range_creation_config(op_name, dtypes):
-    config_space = cs.ConfigurationSpace()
-    start = csh.UniformIntegerHyperparameter('start', lower=0, upper=int(1e4))
-    interval = csh.UniformIntegerHyperparameter('interval', lower=5, upper=int(1e5), log=True)
-    dtype = csh.CategoricalHyperparameter('dtype', choices=dtypes)
-    if op_name == 'linspace':
-        num = csh.UniformIntegerHyperparameter('num', lower=5, upper=int(1e5), log=True)
-        config_space.add_hyperparameters([start, interval, num, dtype])
-    else:
-        config_space.add_hyperparameters([start, interval, dtype])
+    config_space = random_range_cs
     config = config_space.sample_configuration()
     config_dict = config.get_dictionary()
     config_dict.update({'stop': config_dict['start'] + config_dict.pop('interval')})
+    # random dtype
+    config_space = cs.ConfigurationSpace()
+    config_space.add_hyperparameter(csh.CategoricalHyperparameter('dtype', choices=dtypes))
+    config = config_space.sample_configuration()
+    dtype = config.get('dtype')
+    config_dict.update({'dtype': dtype})
+    if op_name == 'linspace':
+        config_space = random_num_cs
+        config = config_space.sample_configuration()
+        config_dict.update(config.get_dictionary())
     return config_dict
+
+
+def get_random_withaxis_config(dtypes):
+    config_space = random_ndim_cs
+    config = config_space.sample_configuration()
+    ndim = config.get('ndim')
+    shape = _gen_random_shape(ndim)
+    # random dtype
+    config_space = cs.ConfigurationSpace()
+    config_space.add_hyperparameter(csh.CategoricalHyperparameter('dtype', choices=dtypes))
+    config = config_space.sample_configuration()
+    dtype = config.get('dtype')
+    # random axis
+    axis = random.randint(0, ndim - 1)
+    return {'shape': shape, 'dtype': dtype, 'axis': axis}

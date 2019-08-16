@@ -4,6 +4,7 @@ import sys
 try:
     import mxnet
     import torch
+    import jax
 except Exception:
     pass
 import numpy
@@ -25,8 +26,11 @@ class RandomOp(CommonOp):
         """
         Get the forward function of the Op.
         """
+        backend = backend_switcher[self._backend]
+        if backend == 'jax.numpy':
+            backend = 'jax'
         try:
-            module = sys.modules['.'.join([backend_switcher[self._backend], 'random'])]
+            module = sys.modules['.'.join([backend, 'random'])]
         except (AttributeError, KeyError) as e:
             raise Warning(f'Backend: {self._backend} not support or not installed!')
 

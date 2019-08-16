@@ -4,6 +4,7 @@ import sys
 try:
     import mxnet
     import torch
+    import jax
 except Exception:
     pass
 import numpy
