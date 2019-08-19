@@ -71,7 +71,7 @@ def _run_xnary_op_benchmark(num_input, op, config, mode='forward', warmup=10, ru
             return both_time, config
 
 
-def run_creation_op_benchmark(op, config, warmup=10, runs=25):
+def run_creation_op_benchmark(op, config, mode='forward', warmup=10, runs=25):
     backend = backend_switcher[op.get_backend()]
     func = op.get_forward_func()
     # TODO(hgt312): jax jit
@@ -146,7 +146,11 @@ def run_op_frameworks_benchmark(opc, config_func, benchmark_func, backends, mode
     if not isinstance(backends, list):
         raise Warning("Argument 'backends' must be a list")
     config = config_func()
-    result = {backend_switcher[backend]: benchmark_func(opc(backend), config, mode, warmup, runs)[0]
-              for backend in backends}
+    result = {}
+    for backend in backends:
+        try:
+            result[backend] = benchmark_func(opc(backend), config, mode, warmup, runs)[0]
+        except Exception:
+            result[backend] = None
     result['config'] = config
     return result

@@ -2,6 +2,19 @@
 
 [doc](./doc/doc.md)
 
+## Operator coverage
+
+I divide opertors into several categories: 
+
+- Common operators, those can be found under `numpy`
+- FFT operators, those can be found under `numpy.fft`
+- Linear algebra operators, those can be found under `numpy.linalg`
+- Random operators, those can be found under `numpy.random`
+
+| MXNet (numpy branch) | ChainerX | JAX   |
+| -------------------- | -------- | ----- |
+| 17.0%                | 23.8%    | 91.2% |
+
 ## Install
 
 For users:
@@ -21,11 +34,12 @@ pip install -e .
 1. Obtain an op from a blob which contains its default config
 
 ```python
-from NumpyXBench.blobs import add_blob
+from NumpyXBench.blobs import get_ones_blob
 
-op = add_blob[0](backend='mx')
-config = add_blob[1]()
-res = add_blob[2](op, config, 'both')
+blob, _ = get_ones_blob('RealTypes')
+op = blob[0](backend='np')
+config = blob[1]()
+res = blob[2](op, config, 'both')
 ```
 
 2. Another more flexible way.
@@ -43,13 +57,21 @@ res = run_binary_op_benchmark(op, config, 'forward')
 3. On multiple frameworks.
 
 ```python
-from NumpyXBench.blobs import add_blob
+from NumpyXBench.blobs import get_add_blob
 from NumpyXBench.utils import run_op_frameworks_benchmark
 
-res = run_op_frameworks_benchmark(*add_blob, ['mx', 'np'], 'forward')
+res = run_op_frameworks_benchmark(*get_add_blob()[0], ['mx', 'np', 'chx', 'jax'], 'forward')
 ```
 
-4. Test coverage (only for frameworks that has same API with NumPy)
+4. Test all registered blobs.
+
+```python
+from NumpyXBench.tools import test_all_blobs
+
+res = test_all_blobs()
+```
+
+5. Test coverage (only for frameworks that has same API with NumPy).
 
 ```python
 from NumpyXBench.tools import test_numpy_coverage

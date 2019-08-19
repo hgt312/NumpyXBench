@@ -1,9 +1,9 @@
-from .blobs import *
+from . import blobs
 from . import operators
 from .utils.common import backend_switcher
-from .utils.mxnet_util import *
+from .utils.benchmarks import run_op_frameworks_benchmark
 
-__all__ = ['test_numpy_coverage']
+__all__ = ['test_numpy_coverage', 'test_all_blobs']
 
 
 def test_numpy_coverage(backend_name):
@@ -27,3 +27,14 @@ def test_numpy_coverage(backend_name):
     print('#' * 60)
     print('End {0} coverage test!'.format(backend))
     return res
+
+
+def test_all_blobs(dtypes='RealTypes', mode='forward'):
+    backends = ['chainerx', 'jax.numpy', 'mxnet.numpy', 'numpy']
+    blobs_list = blobs.__all__
+    blobs_list = [getattr(blobs, i) for i in blobs_list]
+    result = {}
+    for blob_func in blobs_list:
+        blob, name = blob_func(dtypes)
+        result[name] = run_op_frameworks_benchmark(*blob, backends, mode)
+    return result
