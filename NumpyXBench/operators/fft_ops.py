@@ -5,6 +5,7 @@ try:
     import mxnet
     import torch
     import jax
+    import chainerx
 except Exception:
     pass
 import numpy

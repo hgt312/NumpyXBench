@@ -9,7 +9,10 @@ backend_switcher.update({
     'mxnet.numpy': 'mxnet.numpy',
     'jax': 'jax.numpy',  # jax numpy
     'jax.numpy': 'jax.numpy',
-    'pytorch': 'torch',
+    'chainer': 'chainerx',  # chainerx
+    'chainerx': 'chainerx',
+    'chx': 'chainerx',
+    'pytorch': 'torch',  # pytorch
     'torch': 'torch',
 })
 

@@ -5,6 +5,7 @@ try:
     import numpy
     import mxnet
     import torch
+    import chainerx
     import jax
 except Exception:
     pass
@@ -14,6 +15,7 @@ from .metrics import *
 from .mxnet_util import *
 from .numpy_util import *
 from .jax_util import *
+from .chainerx_util import *
 from .torch_util import *
 
 __all__ = ['run_binary_op_benchmark', 'run_unary_op_benchmark', 'run_op_frameworks_benchmark',
@@ -55,13 +57,25 @@ def _run_xnary_op_benchmark(num_input, op, config, mode='forward', warmup=10, ru
             benchmark_func = functools.partial(jit_func, *prepare_jax_inputs(num_input, config))
             backward_time, _ = get_time_metric(benchmark_func, warmup, runs)
             return forward_time + backward_time, config
+    elif backend == 'chainerx':
+        if mode == 'forward':
+            func = functools.partial(func, *prepare_chainerx_inputs(num_input, config, False))
+            forward_time, _ = get_time_metric(func, warmup, runs)
+            return forward_time, config
+        else:
+            def run_graph():
+                result = func(*prepare_chainerx_inputs(num_input, config, True))
+                result.grad = chainerx.ones_like(result)
+                result.backward()
+            both_time = get_time_metric(run_graph, warmup, runs)
+            return both_time, config
 
 
 def run_creation_op_benchmark(op, config, warmup=10, runs=25):
     backend = backend_switcher[op.get_backend()]
     func = op.get_forward_func()
     # TODO(hgt312): jax jit
-    if backend in ['numpy', 'mxnet.numpy', 'jax.numpy']:
+    if backend in ['numpy', 'mxnet.numpy', 'chainerx', 'jax.numpy']:
         func = functools.partial(func, **config)
         forward_time, _ = get_time_metric(func, warmup, runs)
         return forward_time, config
@@ -113,6 +127,19 @@ def run_withaxis_unary_benchmark(op, config, mode='forward', warmup=10, runs=25)
             benchmark_func = functools.partial(jit_func, *prepare_jax_inputs(1, config), axis)
             backward_time, _ = get_time_metric(benchmark_func, warmup, runs)
             return forward_time + backward_time, config
+    elif backend == 'chainerx':
+        if mode == 'forward':
+            func = functools.partial(func, *prepare_chainerx_inputs(1, config_, False), axis=axis)
+            forward_time, _ = get_time_metric(func, warmup, runs)
+            return forward_time, config
+        else:
+            def run_graph():
+                result = func(*prepare_chainerx_inputs(1, config_, True), axis=axis)
+                result.grad = chainerx.ones_like(result)
+                result.backward()
+
+            both_time = get_time_metric(run_graph, warmup, runs)
+            return both_time, config
 
 
 def run_op_frameworks_benchmark(opc, config_func, benchmark_func, backends, mode='forward', warmup=10, runs=25):
