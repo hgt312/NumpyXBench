@@ -1,5 +1,6 @@
 from copy import deepcopy
 import functools
+from random import randint
 
 try:
     import numpy
@@ -142,13 +143,17 @@ def run_withaxis_unary_benchmark(op, config, mode='forward', warmup=10, runs=25)
             return both_time, config
 
 
-def run_op_frameworks_benchmark(opc, config_func, benchmark_func, backends, mode='forward', warmup=10, runs=25):
+def run_op_frameworks_benchmark(opc, config_func, benchmark_func, backends,
+                                mode='forward', warmup=10, runs=25, seed=None):
     if not isinstance(backends, list):
         raise Warning("Argument 'backends' must be a list")
+    if not seed:
+        seed = randint(0, 10000)
     config = config_func()
     result = {}
     for backend in backends:
         try:
+            numpy.random.seed(seed)
             result[backend] = benchmark_func(opc(backend), config, mode, warmup, runs)[0]
         except Exception:
             result[backend] = None
