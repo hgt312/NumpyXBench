@@ -4,7 +4,8 @@ from NumpyXBench import __version__
 requirements = [
     'numpy',
     'ConfigSpace',
-    'Jinja2'
+    'Jinja2',
+    'bokeh'
 ]
 
 setup(

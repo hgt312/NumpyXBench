@@ -63,13 +63,16 @@ from NumpyXBench.utils import run_op_frameworks_benchmark
 res = run_op_frameworks_benchmark(*get_add_blob()[0], ['mx', 'np', 'chx', 'jax'], 'forward')
 ```
 
-4. Test all registered blobs.
+4. Test all registered blobs and brief visualization.
 
 ```python
 from NumpyXBench.tools import test_all_blobs
 
 res = test_all_blobs()
+draw_one_plot('Add', res['add'])  # 
 ```
+
+Plot is shown in [demo.html](https://raw.githack.com/hgt312/NumpyXBench/master/demo.html).
 
 5. Test coverage (only for frameworks that has same API with NumPy).
 
