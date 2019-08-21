@@ -1,5 +1,13 @@
 from itertools import chain
 
+try:
+    import mxnet
+    import torch
+    import chainerx
+    import jax
+except Exception:
+    pass
+
 from bokeh.io import show, output_file, output_notebook
 from bokeh.models import ColumnDataSource, FactorRange
 from bokeh.plotting import figure
@@ -11,6 +19,16 @@ from .utils.common import backend_switcher
 from .utils.benchmarks import run_op_frameworks_benchmark
 
 __all__ = ['test_numpy_coverage', 'test_all_blobs', 'draw_one_plot']
+
+
+def global_set_gpu():
+    mxnet.test_utils.set_default_context(mxnet.gpu(0))
+    chainerx.set_default_device('cuda:0')
+
+
+def global_set_cpu():
+    mxnet.test_utils.set_default_context(mxnet.cpu())
+    chainerx.set_default_device('native')
 
 
 def test_numpy_coverage(backend_name):
