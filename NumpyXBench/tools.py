@@ -36,18 +36,23 @@ def test_numpy_coverage(backend_name):
     return res
 
 
-def test_all_blobs(dtypes='RealTypes', mode='forward', times=6, warmup=10, runs=25):
+def test_all_blobs(dtypes='RealTypes', mode='forward', is_random=True, times=6, warmup=10, runs=25):
     backends = ['chainerx', 'jax.numpy', 'mxnet.numpy', 'numpy']
     blobs_list = blobs.__all__
     blobs_list = [getattr(blobs, i) for i in blobs_list]
     result = {}
     for blob_func in blobs_list:
-        blob, name = blob_func(dtypes)
-        for t in range(times):
-            if t == 0:
-                result[name] = [run_op_frameworks_benchmark(*blob, backends, mode, warmup, runs)]
-            else:
-                result[name].append(run_op_frameworks_benchmark(*blob, backends, mode, warmup, runs))
+        blob, name = blob_func(dtypes, is_random)
+        result[name] = run_op_frameworks_benchmark(*blob, backends, mode, is_random, times, warmup, runs)
+    return result
+
+
+def test_blobs(blobs_list, dtypes='RealTypes', mode='forward', is_random=True, times=6, warmup=10, runs=25):
+    backends = ['chainerx', 'jax.numpy', 'mxnet.numpy', 'numpy']
+    result = {}
+    for blob_func in blobs_list:
+        blob, name = blob_func(dtypes, is_random)
+        result[name] = run_op_frameworks_benchmark(*blob, backends, mode, is_random, times, warmup, runs)
     return result
 
 
@@ -61,19 +66,23 @@ def draw_one_plot(name, data, mode="file", filename="demo.html"):
         output_file(filename)
     else:
         output_notebook()
-    palette = ["#c9d9d3", "#718dbf", "#e84d60", "#75d18d"]
-    tooltips = [("config", "@configs"), ("seconds", "@seconds")]
+    palette = ["#756bb1", "#43a2ca", "#e84d60", "#2ca25f"]
+    tooltips = [("config", "@configs"), ("seconds", "@seconds"), ("rate", "@rates")]
 
-    seconds = list(chain.from_iterable((d['numpy'], d['mxnet.numpy'], d['jax.numpy'], d['chainerx']) for d in data))
     configs = list(chain.from_iterable([str(d['config'])] * 4 for d in data))
-    source = ColumnDataSource(data=dict(x=x, seconds=seconds, configs=configs))
+    seconds = list(chain.from_iterable((d['numpy'], d['mxnet.numpy'], d['jax.numpy'], d['chainerx']) for d in data))
+    rates = list(chain.from_iterable((1.,
+                                      d['numpy'] / d['mxnet.numpy'],
+                                      d['numpy'] / d['jax.numpy'],
+                                      d['numpy'] / d['chainerx']) for d in data))
+    source = ColumnDataSource(data=dict(x=x, configs=configs, seconds=seconds, rates=rates))
     p = figure(x_range=FactorRange(*x),
                plot_height=600, plot_width=800,
-               title=name, y_axis_label="Seconds",
+               title="NumPy operator {0}".format(name), y_axis_label="Speed rate",
                tooltips=tooltips)
-    p.circle(x='x', y='seconds', size=20, source=source, line_color="white",
-             fill_color=factor_cmap('x', palette=palette, factors=backends, start=1, end=2))
-    p.y_range.start = -0.005
+    p.vbar(x='x', top='rates', source=source, width=0.9, bottom=-0.25, line_color="white",
+           fill_color=factor_cmap('x', palette=palette, factors=backends, start=1, end=2))
+    p.y_range.start = -0.25
     p.x_range.range_padding = 0.1
     p.xaxis.major_label_orientation = 1
     p.xgrid.grid_line_color = None

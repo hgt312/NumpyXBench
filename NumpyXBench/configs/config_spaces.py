@@ -6,7 +6,7 @@ from ..utils.common import *
 __all__ = ['random_ndim_cs', 'random_size_cs', 'random_range_cs', 'random_num_cs']
 
 ndim = csh.UniformIntegerHyperparameter('ndim', lower=2, upper=6, log=False)
-size = csh.UniformIntegerHyperparameter('size', lower=1, upper=1000**2, log=True)
+size = csh.UniformIntegerHyperparameter('size', lower=1, upper=2000**2, log=False)
 num = csh.UniformIntegerHyperparameter('num', lower=5, upper=int(1e5), log=True)
 start = csh.UniformIntegerHyperparameter('start', lower=0, upper=int(1e4))
 interval = csh.UniformIntegerHyperparameter('interval', lower=5, upper=int(1e5), log=True)

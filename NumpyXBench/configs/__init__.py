@@ -8,7 +8,7 @@ from numpy import random as nd
 from .config_spaces import *
 
 __all__ = ['get_random_shape_config', 'get_random_size_config', 'get_range_creation_config',
-           'get_random_withaxis_config']
+           'get_random_withaxis_config', 'get_size_configs']
 
 
 def _gen_random_shape(ndim):
@@ -39,6 +39,17 @@ def get_random_size_config(dtypes):
     config = config_space.sample_configuration()
     dtype = config.get('dtype')
     return {'shape': shape, 'dtype': dtype}
+
+
+def get_size_configs(dtypes):
+    dtype = dtypes[0]
+    result = [{'shape': (50,), 'dtype': dtype},
+              {'shape': (5000,), 'dtype': dtype},
+              {'shape': (50000,), 'dtype': dtype},
+              {'shape': (100000,), 'dtype': dtype},
+              {'shape': (1000000,), 'dtype': dtype},
+              {'shape': (3000000,), 'dtype': dtype}]
+    return result
 
 
 def get_range_creation_config(op_name, dtypes):
