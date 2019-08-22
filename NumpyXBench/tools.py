@@ -18,7 +18,7 @@ from . import operators
 from .utils.common import backend_switcher
 from .utils.benchmarks import run_op_frameworks_benchmark
 
-__all__ = ['test_numpy_coverage', 'test_all_blobs', 'draw_one_plot']
+__all__ = ['test_numpy_coverage', 'test_all_blobs', 'draw_one_plot', 'test_blobs']
 
 
 def global_set_gpu():
