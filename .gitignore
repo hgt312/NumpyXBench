@@ -166,3 +166,6 @@ com_crashlytics_export_strings.xml
 crashlytics.properties
 crashlytics-build.properties
 fabric.properties
+
+# Sphinx doc
+doc/_build
