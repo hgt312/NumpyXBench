@@ -1,6 +1,6 @@
 # Benchmark for NumPy Compatible Operators
 
-[doc](./doc/doc.md)
+[doc](doc.md)
 
 ## Operator coverage
 
@@ -19,7 +19,9 @@ I divide opertors into several categories:
 
 For users:
 
-`pip install git+https://github.com/hgt312/NumpyXBench`
+```
+pip install git+https://github.com/hgt312/NumpyXBench
+```
 
 For developer:
 
@@ -27,6 +29,61 @@ For developer:
 git clone https://github.com/hgt312/NumpyXBench.git
 cd NumpyXBench/
 pip install -e .
+```
+
+## Report generation
+
+### Install backends
+
+1. Install MXNet from source:
+
+   http://mxnet.incubator.apache.org/versions/master/install/ubuntu_setup.html
+
+2. Install Jax
+
+   ```
+   # CPU-only version
+   pip install --upgrade jax jaxlib
+   
+   # with GPU supported
+   PYTHON_VERSION=cp37  # alternatives: cp27, cp35, cp36, cp37
+   CUDA_VERSION=cuda92  # alternatives: cuda90, cuda92, cuda100
+   PLATFORM=linux_x86_64  # alternatives: linux_x86_64
+   BASE_URL='https://storage.googleapis.com/jax-releases'
+   pip install --upgrade $BASE_URL/$CUDA_VERSION/jaxlib-0.1.23-$PYTHON_VERSION-none-$PLATFORM.whl
+   
+   pip install --upgrade jax  # install jax
+   ```
+
+3. Install ChainerX
+
+   ```
+   # CPU-only version
+   export CHAINER_BUILD_CHAINERX=1
+   export MAKEFLAGS=-j8  # Using 8 parallel jobs.
+   pip install --pre chainer
+   
+   # with GPU supported
+   export CHAINER_BUILD_CHAINERX=1
+   export CHAINERX_BUILD_CUDA=1
+   export CUDNN_ROOT_DIR=path/to/cudnn
+   export MAKEFLAGS=-j8  # Using 8 parallel jobs.
+   pip install --pre cupy
+   pip install --pre chainer
+   ```
+
+### Install necessary dependencies
+
+```
+cd doc
+pip install -r requirements.txt
+```
+
+### Build website
+
+```
+python ../NumpyXBench/tools.py
+sphinx-build -b html . _build
 ```
 
 ## Simple usage

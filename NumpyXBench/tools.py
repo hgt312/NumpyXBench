@@ -1,3 +1,5 @@
+import argparse
+import os
 from itertools import chain
 
 try:
@@ -8,7 +10,7 @@ try:
 except Exception:
     pass
 
-from bokeh.io import show, output_file, output_notebook
+from bokeh.io import save, show, output_file, output_notebook
 from bokeh.models import ColumnDataSource, FactorRange
 from bokeh.plotting import figure
 from bokeh.transform import factor_cmap
@@ -18,7 +20,7 @@ from . import operators
 from .utils.common import backend_switcher
 from .utils.benchmarks import run_op_frameworks_benchmark
 
-__all__ = ['test_numpy_coverage', 'test_all_blobs', 'draw_one_plot', 'test_blobs']
+__all__ = ['test_numpy_coverage', 'test_all_blobs', 'draw_one_plot', 'test_blobs', 'generate_operator_reports']
 
 
 def global_set_gpu():
@@ -104,7 +106,10 @@ def draw_one_plot(name, data, mode="file", filename="demo.html"):
     p.x_range.range_padding = 0.1
     p.xaxis.major_label_orientation = 1
     p.xgrid.grid_line_color = None
-    show(p)
+    if mode == "file":
+        save(p)
+    else:
+        show(p)
 
 
 def use_html_template(filename):
@@ -115,3 +120,31 @@ def use_html_template(filename):
     html.insert(0, ".. raw:: html")
     with open(filename, mode="w") as f:
         f.writelines(html)
+
+
+def generate_operator_reports(warmup=10, runs=25):
+    base_path = os.path.dirname(os.path.abspath(__file__))
+    data = test_all_blobs(dtypes=['float32'], mode='forward', is_random=True, times=6, warmup=warmup, runs=runs)
+    for key in data.keys():
+        # generate html files
+        html_file = os.path.join(base_path, '../doc/_static/temp', key + '.html')
+        draw_one_plot(key, data[key], mode='file', filename=html_file)
+        use_html_template(html_file)
+        # generate rst files
+        rst_file = os.path.join(base_path, '../doc/reports', key + '.rst')
+        content = """Operator `{0}`
+==========={1}
+
+.. include:: /_static/temp/{0}.html
+        """.format(key, '=' * len(key))
+        with open(rst_file, mode='w') as f:
+            f.write(content)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.description("need parameters 'warmup' and 'runs'.")
+    parser.add_argument("--warmup", default=10, type=int)
+    parser.add_argument("--runs", default=25, type=int)
+    args = parser.parse_args()
+    generate_operator_reports(args.warmup, args.runs)

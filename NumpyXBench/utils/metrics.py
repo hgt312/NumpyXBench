@@ -24,10 +24,14 @@ def get_time_metric(benchmark_func, input_func=None, warmup=10, runs=25):
     for _ in range(warmup):
         if input_func:
             benchmark_func_ = functools.partial(benchmark_func, input_func())
-        timeit.timeit(benchmark_func_, number=1)
+            timeit.timeit(benchmark_func_, number=1)
+        else:
+            timeit.timeit(benchmark_func, number=1)
     for _ in range(runs):
         if input_func:
             benchmark_func_ = functools.partial(benchmark_func, input_func())
-        result = timeit.timeit(benchmark_func_, number=1)
+            result = timeit.timeit(benchmark_func_, number=1)
+        else:
+            result = timeit.timeit(benchmark_func, number=1)
         results.append(result[0])
     return sum(results) / runs, result[1]

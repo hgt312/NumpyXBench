@@ -4,7 +4,8 @@ NumPy Compatible Operator Benchmark
 .. toctree::
     :maxdepth: 2
 
-    reports/sample
+    report
+    readme
 
 What does this project do?
 ==========================
@@ -14,14 +15,8 @@ which have compatible API with `Numpy <https://docs.scipy.org/doc/numpy/index.ht
 Coverage
 ========
 
-+---------------+----------------+-------------+
-| MXNet         | ChainerX       | Jax         |
-+===============+================+=============+
-| 17.0%         | 23.8%          | 91.2%       |
-+---------------+----------------+-------------+
-
-=======  ==========  ======
-MXNet    ChainerX    Jax
-=======  ==========  ======
-17.0%    23.8%       91.2%
-=======  ==========  ======
+=======   ==========   ======
+MXNet     ChainerX     Jax
+=======   ==========   ======
+17.0%     23.8%        91.2%
+=======   ==========   ======
