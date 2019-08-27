@@ -1,3 +1,4 @@
+import functools
 import timeit
 
 timeit.template = """
@@ -11,6 +12,22 @@ def inner(_it, _timer{init}):
 """
 
 
-def get_time_metric(func, warmup=10, runs=25):
-    timeit.timeit(func, number=warmup)
-    return timeit.timeit(func, number=runs)
+def get_time_metric(benchmark_func, input_func=None, warmup=10, runs=25):
+    """
+    :param benchmark_func:
+    :param input_func: tensors input part, a function without input
+    :param warmup:
+    :param runs:
+    :return:
+    """
+    results = []
+    for _ in range(warmup):
+        if input_func:
+            benchmark_func_ = functools.partial(benchmark_func, input_func())
+        timeit.timeit(benchmark_func_, number=1)
+    for _ in range(runs):
+        if input_func:
+            benchmark_func_ = functools.partial(benchmark_func, input_func())
+        result = timeit.timeit(benchmark_func_, number=1)
+        results.append(result[0])
+    return sum(results) / runs, result[1]

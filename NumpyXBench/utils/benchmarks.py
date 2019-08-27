@@ -20,44 +20,48 @@ from .chainerx_util import *
 from .torch_util import *
 
 __all__ = ['run_binary_op_benchmark', 'run_unary_op_benchmark', 'run_op_frameworks_benchmark',
-           'run_creation_op_benchmark', 'run_withaxis_unary_benchmark']
+           'run_creation_op_benchmark', 'run_withaxis_unary_benchmark', 'run_shape_like_op_benchmark']
 
 
 def _run_xnary_op_benchmark(num_input, op, config, mode='forward', warmup=10, runs=25):
     backend = backend_switcher[op.get_backend()]
     func = op.get_forward_func()
     if backend == 'numpy':
-        inputs = prepare_numpy_inputs(num_input, config)
-        func = functools.partial(func, *inputs)
-        forward_time, _ = get_time_metric(func, warmup, runs)
+        def benchmark_func(inputs):
+            result = func(*inputs)
+            return result
+        input_func = functools.partial(prepare_numpy_inputs, num_input, config)
+        forward_time, _ = get_time_metric(benchmark_func, input_func, warmup, runs)
         if mode != 'forward':
             raise Warning("Numpy has no backward")
         return forward_time, config
     elif backend == 'mxnet.numpy':
         if mode == 'forward':
-            inputs = prepare_mxnet_inputs(num_input, config, False)
-            func = functools.partial(func, *inputs)
-            forward_time, _ = get_time_metric(func, warmup, runs)
+            def benchmark_func(inputs):
+                result = func(*inputs)
+                return result
+            input_func = functools.partial(prepare_mxnet_inputs, num_input, config, False)
+            forward_time, _ = get_time_metric(benchmark_func, input_func, warmup, runs)
             return forward_time, config
         else:
-            inputs = prepare_mxnet_inputs(num_input, config, True)
+            input_func = functools.partial(prepare_mxnet_inputs, num_input, config, True)
 
-            def run_graph():
+            def run_graph(inputs):
                 with mxnet.autograd.record():
                     result = func(*inputs)
                 result.backward()
                 return result
-            both_time = get_time_metric(run_graph, warmup, runs)
+            both_time = get_time_metric(run_graph, input_func, warmup, runs)
             return both_time, config
     elif backend == 'jax.numpy':
-        inputs = prepare_jax_inputs(num_input, config)
+        input_func = functools.partial(prepare_jax_inputs, num_input, config)
         jit_func = jax.jit(func, list(range(num_input)))
 
-        def benchmark_func():
+        def benchmark_func(inputs):
             result = jit_func(*inputs)
             result.block_until_ready()
             return result
-        forward_time, _ = get_time_metric(benchmark_func, warmup, runs)
+        forward_time, _ = get_time_metric(benchmark_func, input_func, warmup, runs)
         if mode == 'forward':
             return forward_time, config
         else:
@@ -66,33 +70,33 @@ def _run_xnary_op_benchmark(num_input, op, config, mode='forward', warmup=10, ru
             jit_func = jax.jit(jax.grad(grad_func, list(range(num_input))),
                                list(range(num_input)))
 
-            def benchmark_func():
+            def benchmark_func(inputs):
                 result = jit_func(*inputs)
                 result.block_until_ready()
                 return result
-            backward_time, _ = get_time_metric(benchmark_func, warmup, runs)
+            backward_time, _ = get_time_metric(benchmark_func, input_func, warmup, runs)
             return forward_time + backward_time, config
     elif backend == 'chainerx':
         device = chainerx.get_default_device()
         if mode == 'forward':
-            inputs = prepare_chainerx_inputs(num_input, config, False)
+            input_func = functools.partial(prepare_chainerx_inputs, num_input, config, False)
 
-            def benchmark_func():
+            def benchmark_func(inputs):
                 res = func(*inputs)
                 device.synchronize()
                 return res
-            forward_time, _ = get_time_metric(benchmark_func, warmup, runs)
+            forward_time, _ = get_time_metric(benchmark_func, input_func, warmup, runs)
             return forward_time, config
         else:
-            inputs = prepare_chainerx_inputs(num_input, config, True)
+            input_func = functools.partial(prepare_chainerx_inputs, num_input, config, True)
 
-            def run_graph():
+            def run_graph(inputs):
                 result = func(*inputs)
                 result.grad = chainerx.ones_like(result)
                 result.backward()
                 device.synchronize()
                 return result
-            both_time = get_time_metric(run_graph, warmup, runs)
+            both_time = get_time_metric(run_graph, input_func, warmup, runs)
             return both_time, config
 
 
@@ -102,7 +106,45 @@ def run_creation_op_benchmark(op, config, mode='forward', warmup=10, runs=25):
     # TODO(hgt312): jax jit
     if backend in ['numpy', 'mxnet.numpy', 'chainerx', 'jax.numpy']:
         func = functools.partial(func, **config)
-        forward_time, _ = get_time_metric(func, warmup, runs)
+        forward_time, _ = get_time_metric(func, None, warmup, runs)
+        return forward_time, config
+
+
+def run_shape_like_op_benchmark(op, config, mode='forward', warmup=10, runs=25):
+    backend = backend_switcher[op.get_backend()]
+    func = op.get_forward_func()
+    if backend == 'numpy':
+        def benchmark_func(inputs):
+            result = func(*inputs)
+            return result
+        input_func = functools.partial(prepare_numpy_inputs, 1, config)
+        forward_time, _ = get_time_metric(benchmark_func, input_func, warmup, runs)
+        return forward_time, config
+    elif backend == 'mxnet.numpy':
+        def benchmark_func(inputs):
+            result = func(*inputs)
+            return result
+        input_func = functools.partial(prepare_mxnet_inputs, 1, config, False)
+        forward_time, _ = get_time_metric(benchmark_func, input_func, warmup, runs)
+        return forward_time, config
+    elif backend == 'jax.numpy':
+        input_func = functools.partial(prepare_jax_inputs, 1, config)
+        jit_func = jax.jit(func, [0])
+
+        def benchmark_func(inputs):
+            result = jit_func(*inputs)
+            return result
+        forward_time, _ = get_time_metric(benchmark_func, input_func, warmup, runs)
+        return forward_time, config
+    elif backend == 'chainerx':
+        device = chainerx.get_default_device()
+        input_func = functools.partial(prepare_chainerx_inputs, 1, config, False)
+
+        def benchmark_func(inputs):
+            res = func(*inputs)
+            device.synchronize()
+            return res
+        forward_time, _ = get_time_metric(benchmark_func, input_func, warmup, runs)
         return forward_time, config
 
 
@@ -120,37 +162,41 @@ def run_withaxis_unary_benchmark(op, config, mode='forward', warmup=10, runs=25)
     config_ = deepcopy(config)
     axis = config_.pop('axis')
     if backend == 'numpy':
-        inputs = prepare_numpy_inputs(1, config_)
-        func = functools.partial(func, *inputs, axis=axis)
-        forward_time, _ = get_time_metric(func, warmup, runs)
+        def benchmark_func(inputs):
+            result = func(*inputs, axis=axis)
+            return result
+        input_func = functools.partial(prepare_numpy_inputs, 1, config_)
+        forward_time, _ = get_time_metric(benchmark_func, input_func, warmup, runs)
         if mode != 'forward':
             raise Warning("Numpy has no backward")
         return forward_time, config
     elif backend == 'mxnet.numpy':
         if mode == 'forward':
-            inputs = prepare_mxnet_inputs(1, config_, False)
-            func = functools.partial(func, *inputs, axis=axis)
-            forward_time, _ = get_time_metric(func, warmup, runs)
+            def benchmark_func(inputs):
+                result = func(*inputs, axis=axis)
+                return result
+            input_func = functools.partial(prepare_mxnet_inputs, 1, config_, False)
+            forward_time, _ = get_time_metric(benchmark_func, input_func, warmup, runs)
             return forward_time, config
         else:
-            inputs = prepare_mxnet_inputs(1, config_, True)
+            input_func = functools.partial(prepare_mxnet_inputs, 1, config_, True)
 
-            def run_graph():
+            def run_graph(inputs):
                 with mxnet.autograd.record():
                     result = func(*inputs, axis=axis)
                 result.backward()
                 return result
-            both_time = get_time_metric(run_graph, warmup, runs)
+            both_time = get_time_metric(run_graph, input_func, warmup, runs)
             return both_time, config
     elif backend == 'jax.numpy':
-        inputs = prepare_jax_inputs(1, config)
+        input_func = functools.partial(prepare_jax_inputs, 1, config_)
         jit_func = jax.jit(func, (0, 1))
 
-        def benchmark_func():
+        def benchmark_func(inputs):
             result = jit_func(*inputs, axis)
             result.block_until_ready()
             return result
-        forward_time, _ = get_time_metric(benchmark_func, warmup, runs)
+        forward_time, _ = get_time_metric(benchmark_func, input_func, warmup, runs)
         if mode == 'forward':
             return forward_time, config
         else:
@@ -158,33 +204,33 @@ def run_withaxis_unary_benchmark(op, config, mode='forward', warmup=10, runs=25)
                 return jax.numpy.sum(func(*args))
             jit_func = jax.jit(jax.grad(grad_func), (0, 1))
 
-            def benchmark_func():
+            def benchmark_func(inputs):
                 result = jit_func(*inputs, axis)
                 result.block_until_ready()
                 return result
-            backward_time, _ = get_time_metric(benchmark_func, warmup, runs)
+            backward_time, _ = get_time_metric(benchmark_func, input_func, warmup, runs)
             return forward_time + backward_time, config
     elif backend == 'chainerx':
         device = chainerx.get_default_device()
         if mode == 'forward':
-            inputs = prepare_chainerx_inputs(1, config_, False)
+            input_func = functools.partial(prepare_chainerx_inputs, 1, config_, False)
 
-            def benchmark_func():
+            def benchmark_func(inputs):
                 res = func(*inputs, axis=axis)
                 device.synchronize()
                 return res
-            forward_time, _ = get_time_metric(benchmark_func, warmup, runs)
+            forward_time, _ = get_time_metric(benchmark_func, input_func, warmup, runs)
             return forward_time, config
         else:
-            inputs = prepare_chainerx_inputs(1, config_, True)
+            input_func = functools.partial(prepare_chainerx_inputs, 1, config_, True)
 
-            def run_graph():
+            def run_graph(inputs):
                 result = func(*inputs, axis=axis)
                 result.grad = chainerx.ones_like(result)
                 result.backward()
                 device.synchronize()
                 return result
-            both_time = get_time_metric(run_graph, warmup, runs)
+            both_time = get_time_metric(run_graph, input_func, warmup, runs)
             return both_time, config
 
 
@@ -203,7 +249,7 @@ def run_op_frameworks_benchmark(opc, config_func, benchmark_func, backends,
                     numpy.random.seed(np_seed)
                     result[backend] = benchmark_func(opc(backend), config, mode, warmup, runs)[0]
                 except Exception:
-                    result[backend] = None
+                    result[backend] = float('inf')
             result['config'] = config
             result_list.append(result)
         return result_list
@@ -218,7 +264,7 @@ def run_op_frameworks_benchmark(opc, config_func, benchmark_func, backends,
                     numpy.random.seed(np_seed)
                     result[backend] = benchmark_func(opc(backend), config, mode, warmup, runs)[0]
                 except Exception:
-                    result[backend] = None
+                    result[backend] = float('inf')
             result['config'] = config
             result_list.append(result)
         return result_list

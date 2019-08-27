@@ -105,3 +105,13 @@ def draw_one_plot(name, data, mode="file", filename="demo.html"):
     p.xaxis.major_label_orientation = 1
     p.xgrid.grid_line_color = None
     show(p)
+
+
+def use_html_template(filename):
+    with open(filename, mode="r") as f:
+        html = f.readlines()
+    html[-1] += '\n'
+    html = ["    " + h for h in html]
+    html.insert(0, ".. raw:: html")
+    with open(filename, mode="w") as f:
+        f.writelines(html)
