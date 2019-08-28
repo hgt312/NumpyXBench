@@ -19,6 +19,44 @@ Binary operators
     reports/divide
     reports/mod
 
+Unary operators
+****************
+.. toctree::
+    :maxdepth: 2
+
+    reports/abs
+    reports/arccos
+    reports/arccosh
+    reports/arcsin
+    reports/arcsinh
+    reports/arctan
+    reports/arctanh
+    reports/cbrt
+    reports/ceil
+    reports/cos
+    reports/cosh
+    reports/degrees
+    reports/exp
+    reports/expm1
+    reports/fix
+    reports/floor
+    reports/log
+    reports/log10
+    reports/log1p
+    reports/log2
+    reports/logical_not
+    reports/radians
+    reports/reciprocal
+    reports/rint
+    reports/sign
+    reports/sin
+    reports/sinh
+    reports/sqrt
+    reports/square
+    reports/tan
+    reports/tanh
+    reports/trunc
+
 Creation operators
 ******************
 .. toctree::

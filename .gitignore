@@ -169,5 +169,3 @@ fabric.properties
 
 # Sphinx doc
 doc/_build
-doc/_static/temp
-doc/reports
