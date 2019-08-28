@@ -12,8 +12,6 @@ backend_switcher.update({
     'chainer': 'chainerx',  # chainerx
     'chainerx': 'chainerx',
     'chx': 'chainerx',
-    'pytorch': 'torch',  # pytorch
-    'torch': 'torch',
 })
 
 AllTypes = ["float32", "float64", "float16", "uint8", "int8", "int32", "int64"]

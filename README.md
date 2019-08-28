@@ -1,4 +1,4 @@
-# Benchmark for NumPy Compatible Operators
+# Usage
 
 [doc](doc.md)
 
@@ -82,7 +82,7 @@ pip install -r requirements.txt
 ### Build website
 
 ```
-python ../NumpyXBench/tools.py
+python -m NumpyXBench.tools
 sphinx-build -b html . _build
 ```
 

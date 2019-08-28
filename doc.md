@@ -17,7 +17,7 @@ We should support these frameworks:
 - mxnet
 - chainerx & cupy
 - jax
-- torch
+- torch (TBD)
 - tensorflow 1&2 (TBD)
 
 ### Design

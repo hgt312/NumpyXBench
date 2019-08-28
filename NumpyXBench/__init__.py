@@ -17,9 +17,4 @@ try:
 except Exception:
     print("Cannot use jax!")
 
-try:
-    import torch
-except Exception:
-    print("Cannot use pytorch!")
-
 __version__ = '0.0.2'

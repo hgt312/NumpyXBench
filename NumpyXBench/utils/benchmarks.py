@@ -5,7 +5,6 @@ import random
 try:
     import numpy
     import mxnet
-    import torch
     import chainerx
     import jax
 except Exception:
@@ -17,7 +16,6 @@ from .mxnet_util import *
 from .numpy_util import *
 from .jax_util import *
 from .chainerx_util import *
-from .torch_util import *
 
 __all__ = ['run_binary_op_benchmark', 'run_unary_op_benchmark', 'run_op_frameworks_benchmark',
            'run_creation_op_benchmark', 'run_withaxis_unary_benchmark', 'run_shape_like_op_benchmark']
@@ -249,7 +247,7 @@ def run_op_frameworks_benchmark(opc, config_func, benchmark_func, backends,
                     numpy.random.seed(np_seed)
                     result[backend] = benchmark_func(opc(backend), config, mode, warmup, runs)[0]
                 except Exception:
-                    result[backend] = float('inf')
+                    result[backend] = -1
             result['config'] = config
             result_list.append(result)
         return result_list
@@ -264,7 +262,7 @@ def run_op_frameworks_benchmark(opc, config_func, benchmark_func, backends,
                     numpy.random.seed(np_seed)
                     result[backend] = benchmark_func(opc(backend), config, mode, warmup, runs)[0]
                 except Exception:
-                    result[backend] = float('inf')
+                    result[backend] = -1
             result['config'] = config
             result_list.append(result)
         return result_list

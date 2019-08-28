@@ -4,7 +4,7 @@ Operator reports
 The finished operator reports are listed below, only forward mode and only `float32` dtype now.
 
 For each operator, there is a bar chart report, x-axis shows configs, y-axis shows speed rate with `NumPy`, \
-value of `NumPy` is 1, and value would be 0 if not implemented/supported. \
+value of `NumPy` is 1, and there is no bar if its backend is not implemented/supported. \
 Some operators use a series of determined config, while others use random generated configs, \
 hover the mouse over bars, you can see the detail config.
 
@@ -32,7 +32,7 @@ Creation operators
     reports/arange
     reports/linspace
 
-Sums, products, differences operators
+Reduction operators
 *************************************
 .. toctree::
     :maxdepth: 2

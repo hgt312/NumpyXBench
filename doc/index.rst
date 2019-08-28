@@ -4,8 +4,8 @@ NumPy Compatible Operator Benchmark
 .. toctree::
     :maxdepth: 2
 
-    report
     readme
+    report
 
 What does this project do?
 ==========================

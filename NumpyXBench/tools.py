@@ -4,7 +4,6 @@ from itertools import chain
 
 try:
     import mxnet
-    import torch
     import chainerx
     import jax
 except Exception:
@@ -92,9 +91,9 @@ def draw_one_plot(name, data, mode="file", filename="demo.html"):
     configs = list(chain.from_iterable([str(d['config'])] * 4 for d in data))
     seconds = list(chain.from_iterable((d['numpy'], d['mxnet.numpy'], d['jax.numpy'], d['chainerx']) for d in data))
     rates = list(chain.from_iterable((1.,
-                                      d['numpy'] / d['mxnet.numpy'],
-                                      d['numpy'] / d['jax.numpy'],
-                                      d['numpy'] / d['chainerx']) for d in data))
+                                      d['numpy'] / d['mxnet.numpy'] if d['mxnet.numpy'] > 0 else -0.25,
+                                      d['numpy'] / d['jax.numpy'] if d['jax.numpy'] > 0 else -0.25,
+                                      d['numpy'] / d['chainerx'] if d['chainerx'] > 0 else -0.25) for d in data))
     source = ColumnDataSource(data=dict(x=x, configs=configs, seconds=seconds, rates=rates))
     p = figure(x_range=FactorRange(*x),
                plot_height=600, plot_width=800,
