@@ -63,6 +63,7 @@ def test_all_blobs(dtypes='RealTypes', mode='forward', is_random=True, times=6, 
     for blob_func in blobs_list:
         blob, name = blob_func(dtypes, is_random)
         result[name] = run_op_frameworks_benchmark(*blob, backends, mode, is_random, times, warmup, runs)
+        print("Done benchmark for `{0}`!".format(name))
     return result
 
 
@@ -72,6 +73,7 @@ def test_blobs(blobs_list, dtypes='RealTypes', mode='forward', is_random=True, t
     for blob_func in blobs_list:
         blob, name = blob_func(dtypes, is_random)
         result[name] = run_op_frameworks_benchmark(*blob, backends, mode, is_random, times, warmup, runs)
+        print("Done benchmark for `{0}`!".format(name))
     return result
 
 
@@ -141,8 +143,7 @@ def generate_operator_reports(warmup=10, runs=25):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.description("need parameters 'warmup' and 'runs'.")
+    parser = argparse.ArgumentParser(description="Need parameters 'warmup' and 'runs'.")
     parser.add_argument("--warmup", default=10, type=int)
     parser.add_argument("--runs", default=25, type=int)
     args = parser.parse_args()

@@ -1,6 +1,6 @@
-# Usage
+## What does this project do?
 
-[doc](doc.md)
+This is a project used to benchmark the operators (functions) of the python librarieswhich have compatible API with [Numpy](https://docs.scipy.org/doc/numpy/index.html), now it can generate some reports for operators in MXNet (new numpy programming style), ChainerX and JAX.
 
 ## Operator coverage
 
@@ -35,7 +35,7 @@ pip install -e .
 
 ### Install backends
 
-1. Install MXNet from source:
+1. Install MXNet from source (switch to numpy branch):
 
    http://mxnet.incubator.apache.org/versions/master/install/ubuntu_setup.html
 
@@ -142,4 +142,4 @@ print(len(res['passed']) / (len(res['passed']) + len(res['failed'])))
 
 ## How to contribute
 
-TODO
+[Development Doc](doc.html)
