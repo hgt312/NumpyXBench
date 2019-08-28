@@ -1,4 +1,4 @@
-# Document
+# Development Document
 
 ### Ops
 
@@ -11,52 +11,70 @@ We write configs for different categories of numpy operators, this can be obtain
 
 ### Frameworks
 
-We should support these frameworks:
+We should support these frameworks, some has same API as NumPy, can be supported easily, while others may cost a lot of time to deal with:
 
-- numpy
-- mxnet
-- chainerx & cupy
-- jax
+- [NumPy](https://docs.scipy.org/doc/numpy/index.html)
+- [MXNet](https://mxnet.apache.org/)
+- [Chainerx & Cupy](https://docs.chainer.org/en/stable/chainerx/)
+- [JAX](https://github.com/google/jax)
 - torch (TBD)
 - tensorflow 1&2 (TBD)
 
 ### Design
 
-**Blob package:** Blob package simply store an op and its default config-gen function and default benchmark function in a python tuple. 
+**Ops package:** in directory `operators`, ops with different numpy modules in different files, an Op object only need one argument, `backend`. All the ops under numpy should in `common_ops.py`, and linear algebra ops (under numpy.linalg) should be written in `la_ops.py` …...
 
-For example, `add_blob = (ops.Add, get_random_size_config, run_binary_op_benchmark)`.
+In this part, most of ops can be generate by template. If the path to get the op function in each framework has the same/similar pattern (means that its user interface is same/similar to NumPy), it can be generated automatically.
 
-**Op package:** in directory `operators`, ops with different numpy modules in different files, an Op object only need one argument, `backend`. All the ops under numpy should in `common_ops.py`, and linear algebra ops (under numpy.linalg) should be written in `la_ops.py` …...
-
-In this part, most of ops can be generate by template. If the path to get the op function in each framework has the same pattern, we can add it by simply append its name in a list. Sample code is shown below, look [code](../NumpyXBench/operators/common_ops.py) to get details.
+If you want to add your custom op class, sample code is shown below, just return the function pointer of each backend, actually different operator can be returned:
 
 ```python
-common_op_list = ['add', 'subtract', 'multiply', 'divide'] # add op to here
+__all__ = ['MyRandomNormal']  # add op to here
 
-class CommonOp(object):
-    def __init__(self, backend='numpy', name=None):
-        self._backend = backend
-        self._name = name
-
-    def get_backend(self):
-        return self._backend
+class MyRandomNormal(CommonOp):
+    def __init__(self, backend):
+        super(MyRandomNormal, self).__init__(backend=backend)
 
     def get_forward_func(self, *args, **kwargs):
-        if self._backend in ['numpy', 'np']:
-            module = sys.modules['numpy']
-        elif self._backend in ['mxnet', 'mx']:
-            module = sys.modules['mxnet.numpy']
-        elif self._backend in ['pytorch', 'torch']:
-            module = sys.modules['torch']
+        if backend_switcher[self._backend] == "numpy":
+            return numpy.random.normal
+        elif backend_switcher[self._backend] == "jax.numpy":
+            return jax.random.normal
         else:
             raise NotImplementedError("Backend not supported now!")
-        return getattr(module, self._name)
 ```
 
-**Config package:** get information of input arguments: **input shape, dtype** …… It depends on the type of op. Need to determine benchmark ways (random size/several determined size).
+**Configs package:** get information of input arguments: **input shape, dtype** …… It depends on the type of op. Need to determine benchmark ways (random size/several determined size). A big config function can be built by multiple small provided config spaces. Random config would be a python dict, while the determined would be a list.
 
-**Utils:** functions to do benchmarks (**single op, op cross frameworks, ops on single framework, and ops on frameworks**).
+**Utils:** 
 
-**Metrics:** speed, coverage (necessary), others TBD
+- Functions to do benchmarks (**single op, op cross frameworks, ops on single framework, and ops on frameworks**).
+- Helper functions for backends.
+- Time metric.
 
-**Others:** need test, doc-gen, logging, report-gen, and visualization.
+**Tools:**
+
+- Tools for global setting
+- Tool for test coverage
+- Tools for generate result plots and website generation
+
+**Blob package:** Blob package register an operator, its name, its config-generation function and benchmark function. The blobs is divided by operator type.
+
+A sample blob can be obtained by a provided function:
+
+```python
+def get_add_blob(dtypes=RealTypes, is_random=True):
+    if is_random:
+        config_func = partial(get_random_size_config, get_dtypes(dtypes))
+    else:
+        config_func = partial(get_size_configs, get_dtypes(dtypes))
+    return (ops.Add,
+            config_func,
+            run_binary_op_benchmark), 'add'
+```
+
+**Others:** need test, doc-gen, logging.
+
+## Contribute
+
+For all the operator list can be obtained, the mainly work is to write config generation functions and corresponding benchmark functions for lots of types of operators.

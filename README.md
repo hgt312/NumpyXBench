@@ -1,6 +1,6 @@
 ## What does this project do?
 
-This is a project used to benchmark the operators (functions) of the python librarieswhich have compatible API with [Numpy](https://docs.scipy.org/doc/numpy/index.html), now it can generate some reports for operators in MXNet (new numpy programming style), ChainerX and JAX.
+This is a project used to benchmark the operators (functions) of the python librarieswhich have compatible API with [Numpy](https://docs.scipy.org/doc/numpy/index.html), now it can generate some reports for operators in [MXNet](https://mxnet.apache.org/) (new numpy programming style), [ChainerX](https://docs.chainer.org/en/stable/chainerx/) and [JAX](https://github.com/google/jax).
 
 ## Operator coverage
 
@@ -23,7 +23,7 @@ For users:
 pip install git+https://github.com/hgt312/NumpyXBench
 ```
 
-For developer:
+For developer (necessary for report generation):
 
 ```
 git clone https://github.com/hgt312/NumpyXBench.git
@@ -82,7 +82,7 @@ pip install -r requirements.txt
 ### Build website
 
 ```
-python -m NumpyXBench.tools
+python -m NumpyXBench.tools  # -h for help
 sphinx-build -b html . _build
 ```
 
@@ -142,4 +142,4 @@ print(len(res['passed']) / (len(res['passed']) + len(res['failed'])))
 
 ## How to contribute
 
-[Development Doc](doc.html)
+Refer to [Development Doc](doc.html).

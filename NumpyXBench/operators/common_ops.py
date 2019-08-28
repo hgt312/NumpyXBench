@@ -79,7 +79,7 @@ def _gen_common_op_list():
     return common_op_list
 
 
-def _gen_binary_op_class(name):
+def _gen_common_op_class(name):
     local = {}
     exec(template.render(name=name), None, local)  # pylint: disable=exec-used
     op_name = name.capitalize()
@@ -92,4 +92,4 @@ def _gen_binary_op_class(name):
 
 for op in _gen_common_op_list():
     if op not in __all__:
-        _gen_binary_op_class(op)
+        _gen_common_op_class(op)
