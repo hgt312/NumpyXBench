@@ -1,6 +1,7 @@
 import argparse
-import os
 from itertools import chain
+import pprint
+import os
 
 try:
     import mxnet
@@ -77,7 +78,10 @@ def test_blobs(blobs_list, dtypes='RealTypes', mode='forward', is_random=True, t
     return result
 
 
-def draw_one_plot(name, data, mode="file", filename="demo.html"):
+def draw_one_plot(name, data, mode="file", filename="demo.html", info=None):
+    title = "NumPy operator {0}".format(name)
+    if info:
+        title += " - {0}".format(info)
     num = len(data)
     x_labels = ['config{0}'.format(i + 1) for i in range(num)]
     backends = ['numpy', 'mxnet', 'jax', 'chainerx']
@@ -88,19 +92,20 @@ def draw_one_plot(name, data, mode="file", filename="demo.html"):
     else:
         output_notebook()
     palette = ["#756bb1", "#43a2ca", "#e84d60", "#2ca25f"]
-    tooltips = [("config", "@configs"), ("seconds", "@seconds"), ("rate", "@rates")]
+    tooltips = [("config", "@configs"), ("millisecond", "@millisecond"), ("speedup", "@rates")]
 
-    configs = list(chain.from_iterable([str(d['config'])] * 4 for d in data))
-    seconds = list(chain.from_iterable((d['numpy'], d['mxnet.numpy'], d['jax.numpy'], d['chainerx']) for d in data))
+    configs = list(chain.from_iterable([pprint.pformat(d['config'], width=1)] * 4 for d in data))
+    millisecond = list(chain.from_iterable((d['numpy'], d['mxnet.numpy'], d['jax.numpy'], d['chainerx']) for d in data))
     rates = list(chain.from_iterable((1.,
-                                      d['numpy'] / d['mxnet.numpy'] if d['mxnet.numpy'] > 0 else -0.25,
-                                      d['numpy'] / d['jax.numpy'] if d['jax.numpy'] > 0 else -0.25,
-                                      d['numpy'] / d['chainerx'] if d['chainerx'] > 0 else -0.25) for d in data))
-    source = ColumnDataSource(data=dict(x=x, configs=configs, seconds=seconds, rates=rates))
+                                      d['numpy'] / d['mxnet.numpy'] if d['mxnet.numpy'] else -0.25,
+                                      d['numpy'] / d['jax.numpy'] if d['jax.numpy'] else -0.25,
+                                      d['numpy'] / d['chainerx'] if d['chainerx'] else -0.25) for d in data))
+    source = ColumnDataSource(data=dict(x=x, configs=configs, millisecond=millisecond, rates=rates))
     p = figure(x_range=FactorRange(*x),
                plot_height=600, plot_width=800,
-               title="NumPy operator {0}".format(name), y_axis_label="Speed rate",
-               tooltips=tooltips)
+               title=title, y_axis_label="Speedup",
+               tooltips=tooltips,
+               toolbar_location="above")
     p.vbar(x='x', top='rates', source=source, width=0.9, bottom=-0.25, line_color="white",
            fill_color=factor_cmap('x', palette=palette, factors=backends, start=1, end=2))
     p.y_range.start = -0.25
@@ -123,13 +128,13 @@ def use_html_template(filename):
         f.writelines(html)
 
 
-def generate_operator_reports(warmup=10, runs=25):
+def generate_operator_reports(warmup=10, runs=25, info=None):
     base_path = os.path.dirname(os.path.abspath(__file__))
     data = test_all_blobs(dtypes=['float32'], mode='forward', is_random=True, times=6, warmup=warmup, runs=runs)
     for key in data.keys():
         # generate html files
         html_file = os.path.join(base_path, '../doc/_static/temp', key + '.html')
-        draw_one_plot(key, data[key], mode='file', filename=html_file)
+        draw_one_plot(key, data[key], mode='file', filename=html_file, info=info)
         use_html_template(html_file)
         # generate rst files
         rst_file = os.path.join(base_path, '../doc/reports', key + '.rst')
@@ -146,5 +151,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Need parameters 'warmup' and 'runs'.")
     parser.add_argument("--warmup", default=10, type=int)
     parser.add_argument("--runs", default=25, type=int)
+    parser.add_argument("--info", default=None, type=str)
     args = parser.parse_args()
-    generate_operator_reports(args.warmup, args.runs)
+    generate_operator_reports(args.warmup, args.runs, args.info)

@@ -49,7 +49,7 @@ def get_ones_like_blob(dtypes=AllTypes, is_random=True):
         config_func = partial(get_size_configs, get_dtypes(dtypes))
     return (ops.Ones_like,
             config_func,
-            run_shape_like_op_benchmark), 'ones_like'
+            run_unary_op_benchmark), 'ones_like'
 
 
 def get_zeros_like_blob(dtypes=AllTypes, is_random=True):
@@ -59,7 +59,7 @@ def get_zeros_like_blob(dtypes=AllTypes, is_random=True):
         config_func = partial(get_size_configs, get_dtypes(dtypes))
     return (ops.Zeros_like,
             config_func,
-            run_shape_like_op_benchmark), 'zeros_like'
+            run_unary_op_benchmark), 'zeros_like'
 
 
 def get_arange_blob(dtypes=AllTypes, is_random=True):

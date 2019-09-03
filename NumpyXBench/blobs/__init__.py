@@ -25,10 +25,10 @@ __all__ = ['get_add_blob', 'get_subtract_blob', 'get_multiply_blob', 'get_divide
 def get_sum_blob(dtypes=RealTypes, is_random=True):
     return (ops.Sum,
             partial(get_random_withaxis_config, get_dtypes(dtypes)),
-            run_withaxis_unary_benchmark), 'sum'
+            run_unary_op_benchmark), 'sum'
 
 
 def get_prod_blob(dtypes=RealTypes, is_random=True):
     return (ops.Prod,
             partial(get_random_withaxis_config, get_dtypes(dtypes)),
-            run_withaxis_unary_benchmark), 'prod'
+            run_unary_op_benchmark), 'prod'
