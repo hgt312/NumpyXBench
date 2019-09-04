@@ -1,3 +1,4 @@
+from functools import partial
 import math
 import random
 
@@ -7,8 +8,8 @@ from numpy import random as nd
 
 from .config_spaces import *
 
-__all__ = ['get_random_shape_config', 'get_random_size_config', 'get_range_creation_config',
-           'get_random_withaxis_config', 'get_size_configs']
+__all__ = ['get_random_shape_config', 'get_random_size_config', 'get_random_withaxis_config',
+           'get_size_configs', 'get_random_arange_config', 'get_random_linspace_config']
 
 
 def _gen_random_shape(ndim):
@@ -68,6 +69,14 @@ def get_range_creation_config(op_name, dtypes):
         config = config_space.sample_configuration()
         config_dict.update(config.get_dictionary())
     return config_dict
+
+
+def get_random_arange_config(dtypes):
+    return get_range_creation_config('arange', dtypes)
+
+
+def get_random_linspace_config(dtypes):
+    return get_range_creation_config('linspace', dtypes)
 
 
 def get_random_withaxis_config(dtypes):

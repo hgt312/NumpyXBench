@@ -81,22 +81,32 @@ pip install -r requirements.txt
 
 ### Build website
 
+#### CPU only
+
 ```
 python -m NumpyXBench.tools  # -h for help
-sphinx-build -b html . _build
+sphinx-build -b html . _build -A current_device=CPU
+```
+
+#### With GPU enabled
+
+```
+python -m NumpyXBench.tools  # -h for help
+sphinx-build -b html . _build -A current_device=CPU
+sphinx-build -b html . _build/gpu -A current_device=GPU
 ```
 
 ## Simple usage
 
-1. Obtain an op from a blob which contains its default config
+1. Obtain an op from a toolkit which contains its default config
 
 ```python
-from NumpyXBench.blobs import get_ones_blob
+from NumpyXBench.toolkits import add_toolkit
 
-blob, _ = get_ones_blob('RealTypes')
-op = blob[0](backend='np')
-config = blob[1]()
-res = blob[2](op, config, 'both')
+toolkit = add_toolkit
+op = toolkit.get_operator_cls()('np')
+config = toolkit.get_random_config_func('RealTypes')()
+res = toolkit.get_benchmark_func()(op, config, 'forward')
 ```
 
 2. Another more flexible way.
@@ -114,22 +124,22 @@ res = run_binary_op_benchmark(op, config, 'forward')
 3. On multiple frameworks.
 
 ```python
-from NumpyXBench.blobs import get_add_blob
+from NumpyXBench.toolkits import add_toolkit
 from NumpyXBench.utils import run_op_frameworks_benchmark
 
-res = run_op_frameworks_benchmark(*get_add_blob()[0], ['mx', 'np', 'chx', 'jax'], 'forward')
+res = run_op_frameworks_benchmark(*add_toolkit.get_tools('AllTypes'), ['mx', 'np', 'chx', 'jax'], 'forward')
 ```
 
-4. Test all registered blobs and brief visualization.
+4. Test all registered toolkits and brief visualization.
 
 ```python
-from NumpyXBench.tools import test_all_blobs
+from NumpyXBench.tools import test_all_operators, draw_one_plot, test_operators
+from NumpyXBench import toolkits
 
-res = test_all_blobs()
-draw_one_plot('Add', res['add'])  # 
+res = test_operators([toolkits.mod_toolkit, toolkits.multiply_toolkit], is_random=False, dtypes=['float32'], times=6, warmup=3, runs=5)
+# res = test_all_operators(is_random=False, dtypes=['float32'], times=6, warmup=1, runs=2)
+draw_one_plot('mod', res['mod'], mode='note', info='mbp, cpu')  # use notebook to see the plot
 ```
-
-Plot is shown in [demo.html](https://raw.githack.com/hgt312/NumpyXBench/master/demo.html).
 
 5. Test coverage (only for frameworks that has same API with NumPy).
 

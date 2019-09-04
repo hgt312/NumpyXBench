@@ -123,21 +123,22 @@ def run_unary_op_benchmark(op, config, mode='forward', warmup=10, runs=25):
 
 
 def run_op_frameworks_benchmark(opc, config_func, benchmark_func, backends,
-                                mode='forward', is_random=True, times=6, warmup=10, runs=25):
+                                mode='forward', times=6, warmup=10, runs=25):
     if not isinstance(backends, list):
         raise Warning("Argument 'backends' must be a list")
-    if (not is_random) and isinstance(config_func(), list):
+    if isinstance(config_func(), list):
         result_list = []
         config_list = config_func()
         for config in config_list:
             np_seed = random.randint(0, 10000)
             result = {}
             for backend in backends:
+                backend_ = backend_switcher[backend]
                 try:
                     numpy.random.seed(np_seed)
-                    result[backend] = benchmark_func(opc(backend), config, mode, warmup, runs)[0] * 1000
+                    result[backend_] = benchmark_func(opc(backend_), config, mode, warmup, runs)[0] * 1000
                 except Exception:
-                    result[backend] = None
+                    result[backend_] = None
             result['config'] = config
             result_list.append(result)
         return result_list
@@ -148,11 +149,12 @@ def run_op_frameworks_benchmark(opc, config_func, benchmark_func, backends,
             np_seed = random.randint(0, 10000)
             result = {}
             for backend in backends:
+                backend_ = backend_switcher[backend]
                 try:
                     numpy.random.seed(np_seed)
-                    result[backend] = benchmark_func(opc(backend), config, mode, warmup, runs)[0] * 1000
+                    result[backend_] = benchmark_func(opc(backend_), config, mode, warmup, runs)[0] * 1000
                 except Exception:
-                    result[backend] = None
+                    result[backend_] = None
             result['config'] = config
             result_list.append(result)
         return result_list

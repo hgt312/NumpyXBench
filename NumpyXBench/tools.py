@@ -15,12 +15,12 @@ from bokeh.models import ColumnDataSource, FactorRange
 from bokeh.plotting import figure
 from bokeh.transform import factor_cmap
 
-from . import blobs
+from . import toolkits
 from . import operators
 from .utils.common import backend_switcher
 from .utils.benchmarks import run_op_frameworks_benchmark
 
-__all__ = ['test_numpy_coverage', 'test_all_blobs', 'draw_one_plot', 'test_blobs', 'generate_operator_reports']
+__all__ = ['test_numpy_coverage', 'test_all_operators', 'draw_one_plot', 'test_operators', 'generate_operator_reports']
 
 
 def global_set_gpu():
@@ -56,24 +56,27 @@ def test_numpy_coverage(backend_name):
     return res
 
 
-def test_all_blobs(dtypes='RealTypes', mode='forward', is_random=True, times=6, warmup=10, runs=25):
+def test_all_operators(dtypes='RealTypes', mode='forward', is_random=True, times=6, warmup=10, runs=25):
     backends = ['chainerx', 'jax.numpy', 'mxnet.numpy', 'numpy']
-    blobs_list = blobs.__all__
-    blobs_list = [getattr(blobs, i) for i in blobs_list]
+    toolkit_list = dir(toolkits)
+    toolkit_list = [i for i in toolkit_list if i.endswith('_toolkit')]
+    toolkit_list = [getattr(toolkits, i) for i in toolkit_list]
     result = {}
-    for blob_func in blobs_list:
-        blob, name = blob_func(dtypes, is_random)
-        result[name] = run_op_frameworks_benchmark(*blob, backends, mode, is_random, times, warmup, runs)
+    for toolkit in toolkit_list:
+        name = toolkit.get_name()
+        result[name] = run_op_frameworks_benchmark(*toolkit.get_tools(dtypes, is_random),
+                                                   backends, mode, times, warmup, runs)
         print("Done benchmark for `{0}`!".format(name))
     return result
 
 
-def test_blobs(blobs_list, dtypes='RealTypes', mode='forward', is_random=True, times=6, warmup=10, runs=25):
+def test_operators(toolkit_list, dtypes='RealTypes', mode='forward', is_random=True, times=6, warmup=10, runs=25):
     backends = ['chainerx', 'jax.numpy', 'mxnet.numpy', 'numpy']
     result = {}
-    for blob_func in blobs_list:
-        blob, name = blob_func(dtypes, is_random)
-        result[name] = run_op_frameworks_benchmark(*blob, backends, mode, is_random, times, warmup, runs)
+    for toolkit in toolkit_list:
+        name = toolkit.get_name()
+        result[name] = run_op_frameworks_benchmark(*toolkit.get_tools(dtypes, is_random),
+                                                   backends, mode, times, warmup, runs)
         print("Done benchmark for `{0}`!".format(name))
     return result
 
@@ -129,22 +132,23 @@ def use_html_template(filename):
 
 
 def generate_operator_reports(warmup=10, runs=25, info=None):
-    base_path = os.path.dirname(os.path.abspath(__file__))
-    data = test_all_blobs(dtypes=['float32'], mode='forward', is_random=True, times=6, warmup=warmup, runs=runs)
-    for key in data.keys():
-        # generate html files
-        html_file = os.path.join(base_path, '../doc/_static/temp', key + '.html')
-        draw_one_plot(key, data[key], mode='file', filename=html_file, info=info)
-        use_html_template(html_file)
-        # generate rst files
-        rst_file = os.path.join(base_path, '../doc/reports', key + '.rst')
-        content = """Operator `{0}`
-==========={1}
-
-.. include:: /_static/temp/{0}.html
-        """.format(key, '=' * len(key))
-        with open(rst_file, mode='w') as f:
-            f.write(content)
+    pass
+#     base_path = os.path.dirname(os.path.abspath(__file__))
+#     data = test_all_blobs(dtypes=['float32'], mode='forward', is_random=True, times=6, warmup=warmup, runs=runs)
+#     for key in data.keys():
+#         # generate html files
+#         html_file = os.path.join(base_path, '../doc/_static/temp', key + '.html')
+#         draw_one_plot(key, data[key], mode='file', filename=html_file, info=info)
+#         use_html_template(html_file)
+#         # generate rst files
+#         rst_file = os.path.join(base_path, '../doc/reports', key + '.rst')
+#         content = """Operator `{0}`
+# ==========={1}
+#
+# .. include:: /_static/temp/{0}.html
+#         """.format(key, '=' * len(key))
+#         with open(rst_file, mode='w') as f:
+#             f.write(content)
 
 
 if __name__ == "__main__":

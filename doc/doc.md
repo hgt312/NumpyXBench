@@ -58,19 +58,14 @@ class MyRandomNormal(CommonOp):
 - Tool for test coverage
 - Tools for generate result plots and website generation
 
-**Blob package:** Blob package register an operator, its name, its config-generation function and benchmark function. The blobs is divided by operator type.
+**Toolkits package:** Toolkits package register an operator, its name, its config-generation function and benchmark function. The toolkits is divided by operator type. In addition, one toolkits record the information such as if the operator has backward and the types it supported.
 
-A sample blob can be obtained by a provided function:
+A sample toolkit:
 
 ```python
-def get_add_blob(dtypes=RealTypes, is_random=True):
-    if is_random:
-        config_func = partial(get_random_size_config, get_dtypes(dtypes))
-    else:
-        config_func = partial(get_size_configs, get_dtypes(dtypes))
-    return (ops.Add,
-            config_func,
-            run_binary_op_benchmark), 'add'
+sum_toolkit = Toolkit(has_backward=True, name='sum', operator_cls=ops.Sum,
+                      random_config_func=get_random_withaxis_config,
+                      benchmark_func=run_unary_op_benchmark)
 ```
 
 **Others:** need test, doc-gen, logging.
