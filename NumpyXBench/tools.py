@@ -22,7 +22,7 @@ from .utils.common import backend_switcher
 from .utils.benchmarks import run_op_frameworks_benchmark
 
 __all__ = ['test_numpy_coverage', 'test_all_operators', 'draw_one_plot', 'test_operators', 'generate_operator_reports',
-           'global_set_cpu', 'global_set_gpu']
+           'global_set_cpu', 'global_set_gpu', 'generate_one_report']
 
 
 def global_set_gpu():
@@ -33,13 +33,6 @@ def global_set_gpu():
 def global_set_cpu():
     mxnet.test_utils.set_default_context(mxnet.cpu())
     chainerx.set_default_device('native')
-
-
-def get_toolkit_list():
-    toolkit_list = dir(toolkits)
-    toolkit_list = [i for i in toolkit_list if i.endswith('_toolkit')]
-    toolkit_list = [getattr(toolkits, i) for i in toolkit_list]
-    return toolkit_list
 
 
 def test_numpy_coverage(backend_name):
@@ -67,7 +60,9 @@ def test_numpy_coverage(backend_name):
 
 def test_all_operators(dtypes='RealTypes', mode='forward', is_random=True, times=6, warmup=10, runs=25):
     backends = ['chainerx', 'jax.numpy', 'mxnet.numpy', 'numpy']
-    toolkit_list = get_toolkit_list()
+    toolkit_list = dir(toolkits)
+    toolkit_list = [i for i in toolkit_list if i.endswith('_toolkit')]
+    toolkit_list = [getattr(toolkits, i) for i in toolkit_list]
     result = {}
     for toolkit in toolkit_list:
         name = toolkit.get_name()
@@ -138,7 +133,8 @@ def use_html_template(filename):
         f.writelines(html)
 
 
-def generate_one_report(toolkit, warmup, runs, info):
+def generate_one_report(toolkit_name, warmup, runs, info):
+    toolkit = getattr(toolkits, toolkit_name)
     base_path = os.path.dirname(os.path.abspath(__file__))
     backends = ['chainerx', 'jax.numpy', 'mxnet.numpy', 'numpy']
     op_name = toolkit.get_name()
@@ -155,6 +151,7 @@ def generate_one_report(toolkit, warmup, runs, info):
         draw_one_plot(op_name, data, mode='file', filename=html_file,
                       info=info + ", forward only" if info else None)
         use_html_template(html_file)
+        gc.collect()
     if toolkit.get_backward_dtypes():
         for dtype in toolkit.get_backward_dtypes():
             html_filename = "{0}_b_{1}.html".format(op_name, dtype)
@@ -165,6 +162,7 @@ def generate_one_report(toolkit, warmup, runs, info):
             draw_one_plot(op_name, data, mode='file', filename=html_file,
                           info=info + ", with backward" if info else None)
             use_html_template(html_file)
+            gc.collect()
     rst_file = os.path.join(base_path, '../doc/reports', op_name + '.rst')
     with open(rst_file, mode='w') as f:
         f.write(content)
@@ -172,9 +170,12 @@ def generate_one_report(toolkit, warmup, runs, info):
 
 
 def generate_operator_reports(warmup=10, runs=25, info=None):
-    toolkit_list = get_toolkit_list()
-    for toolkit in toolkit_list:
-        generate_one_report(toolkit, warmup, runs, info)
+    toolkit_list = dir(toolkits)
+    toolkit_list = [i for i in toolkit_list if i.endswith('_toolkit')]
+    for toolkit_name in toolkit_list:
+        cmd_line = 'python3 -c "from NumpyXBench.tools import generate_one_report; ' \
+              'generate_one_report(\'{0}\', {1}, {2}, \'{3}\')"'.format(toolkit_name, warmup, runs, info)
+        os.system(cmd_line)
         gc.collect()
 
 
