@@ -1,5 +1,7 @@
 NumPy Compatible Operator Benchmark
-===============================================================
+===================================
+
+Built in |today|.
 
 .. toctree::
     :maxdepth: 2
