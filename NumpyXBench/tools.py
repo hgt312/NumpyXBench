@@ -102,18 +102,20 @@ def draw_one_plot(name, data, mode="file", filename="demo.html", info=None):
     configs = list(chain.from_iterable([pprint.pformat(d['config'], width=1)] * 4 for d in data))
     millisecond = list(chain.from_iterable((d['numpy'], d['mxnet.numpy'], d['jax.numpy'], d['chainerx']) for d in data))
     rates = list(chain.from_iterable((1.,
-                                      d['numpy'] / d['mxnet.numpy'] if d['mxnet.numpy'] else -0.25,
-                                      d['numpy'] / d['jax.numpy'] if d['jax.numpy'] else -0.25,
-                                      d['numpy'] / d['chainerx'] if d['chainerx'] else -0.25) for d in data))
+                                      d['numpy'] / d['mxnet.numpy'] if d['mxnet.numpy'] else -1,
+                                      d['numpy'] / d['jax.numpy'] if d['jax.numpy'] else -1,
+                                      d['numpy'] / d['chainerx'] if d['chainerx'] else -1) for d in data))
+    offset = -max(rates) / 5
+    rates = [r if r > 0 else offset for r in rates]
     source = ColumnDataSource(data=dict(x=x, configs=configs, millisecond=millisecond, rates=rates))
     p = figure(x_range=FactorRange(*x),
                plot_height=600, plot_width=800,
                title=title, y_axis_label="Speedup",
                tooltips=tooltips,
                toolbar_location="above")
-    p.vbar(x='x', top='rates', source=source, width=0.9, bottom=-0.25, line_color="white",
+    p.vbar(x='x', top='rates', source=source, width=0.9, bottom=offset, line_color="white",
            fill_color=factor_cmap('x', palette=palette, factors=backends, start=1, end=2))
-    p.y_range.start = -0.25
+    p.y_range.start = offset
     p.x_range.range_padding = 0.1
     p.xaxis.major_label_orientation = 1
     p.xgrid.grid_line_color = None
@@ -149,7 +151,7 @@ def generate_one_report(toolkit_name, warmup, runs, info):
         data = run_op_frameworks_benchmark(*toolkit.get_tools([dtype], False),
                                            backends, 'forward', 6, warmup, runs)
         draw_one_plot(op_name, data, mode='file', filename=html_file,
-                      info=info + ", forward only" if info else None)
+                      info=info + ", {0}, forward only".format(dtype) if info else None)
         use_html_template(html_file)
         gc.collect()
     if toolkit.get_backward_dtypes():
@@ -160,7 +162,7 @@ def generate_one_report(toolkit_name, warmup, runs, info):
             data = run_op_frameworks_benchmark(*toolkit.get_tools([dtype], False),
                                                backends, 'both', 6, warmup, runs)
             draw_one_plot(op_name, data, mode='file', filename=html_file,
-                          info=info + ", with backward" if info else None)
+                          info=info + ", {0}, with backward".format(dtype) if info else None)
             use_html_template(html_file)
             gc.collect()
     rst_file = os.path.join(base_path, '../doc/reports', op_name + '.rst')
