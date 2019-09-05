@@ -9,7 +9,7 @@ from numpy import random as nd
 from .config_spaces import *
 
 __all__ = ['get_random_shape_config', 'get_random_size_config', 'get_random_withaxis_config',
-           'get_size_configs', 'get_random_arange_config', 'get_random_linspace_config']
+           'get_size_configs', 'get_random_arange_config', 'get_random_linspace_config', 'get_size_axis_configs']
 
 
 def _gen_random_shape(ndim):
@@ -44,13 +44,24 @@ def get_random_size_config(dtypes):
 
 def get_size_configs(dtypes):
     dtype = dtypes[0]
-    result = [{'shape': (50,), 'dtype': dtype},
-              {'shape': (5000,), 'dtype': dtype},
-              {'shape': (50000,), 'dtype': dtype},
-              {'shape': (100000,), 'dtype': dtype},
-              {'shape': (1000000,), 'dtype': dtype},
-              {'shape': (3000000,), 'dtype': dtype}]
-    return result
+    configs = [{'shape': (50,), 'dtype': dtype},
+               {'shape': (5000,), 'dtype': dtype},
+               {'shape': (50000,), 'dtype': dtype},
+               {'shape': (100000,), 'dtype': dtype},
+               {'shape': (1000000,), 'dtype': dtype},
+               {'shape': (3000000,), 'dtype': dtype}]
+    return configs
+
+
+def get_size_axis_configs(dtypes):
+    dtype = dtypes[0]
+    configs = [{'shape': (10, 10, 10), 'dtype': dtype, 'axis': None},
+               {'shape': (10, 10, 10), 'dtype': dtype, 'axis': 2},
+               {'shape': (100, 100, 10), 'dtype': dtype, 'axis': None},
+               {'shape': (100, 100, 10), 'dtype': dtype, 'axis': 1},
+               {'shape': (100, 100, 10), 'dtype': dtype, 'axis': 2},
+               {'shape': (100, 100, 100), 'dtype': dtype, 'axis': 0}]
+    return configs
 
 
 def get_range_creation_config(op_name, dtypes):

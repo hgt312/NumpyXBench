@@ -19,11 +19,11 @@ class Toolkit(object):
             self.backward_dtypes = None
 
     def get_forward_dtypes(self):
-        return self.forward_dtypes
+        return get_dtypes(self.forward_dtypes)
 
     def get_backward_dtypes(self):
         if self.has_backward:
-            return self.backward_dtypes
+            return get_dtypes(self.backward_dtypes)
         else:
             return None
 

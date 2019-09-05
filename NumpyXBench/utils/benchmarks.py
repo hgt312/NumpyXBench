@@ -22,6 +22,8 @@ __all__ = ['run_binary_op_benchmark', 'run_unary_op_benchmark', 'run_op_framewor
 
 
 def _run_simple_op_benchmark(num_input, op, config, mode='forward', warmup=10, runs=25):
+    if not op.get_forward_func():
+        return None, config
     backend = backend_switcher[op.get_backend()]
     func = op.get_forward_func()
     if num_input:
@@ -51,21 +53,22 @@ def _run_simple_op_benchmark(num_input, op, config, mode='forward', warmup=10, r
                         result = func(*inputs)
                     result.backward()
                     return result
-                both_time = get_time_metric(run_graph, input_func, warmup, runs)
+                both_time, _ = get_time_metric(run_graph, input_func, warmup, runs)
                 return both_time, config
         elif backend == 'jax.numpy':
             input_func = functools.partial(prepare_jax_inputs, num_input, tensor_config)
-            jit_func = jax.jit(func, list(range(num_input)))
-
-            def benchmark_func(inputs):
-                result = jit_func(*inputs)
-                try:
-                    result.block_until_ready()
-                except Exception:
-                    pass
-                return result
-            forward_time, _ = get_time_metric(benchmark_func, input_func, warmup, runs)
             if mode == 'forward':
+                jit_func = jax.jit(func, list(range(num_input)))
+
+                def benchmark_func(inputs):
+                    result = jit_func(*inputs)
+                    try:
+                        result.block_until_ready()
+                    except Exception:
+                        pass
+                    return result
+
+                forward_time, _ = get_time_metric(benchmark_func, input_func, warmup, runs)
                 return forward_time, config
             else:
                 def grad_func(*args):
@@ -80,8 +83,8 @@ def _run_simple_op_benchmark(num_input, op, config, mode='forward', warmup=10, r
                     except Exception:
                         pass
                     return result
-                backward_time, _ = get_time_metric(benchmark_func, input_func, warmup, runs)
-                return forward_time + backward_time, config
+                both_time, _ = get_time_metric(benchmark_func, input_func, warmup, runs)
+                return both_time, config
         elif backend == 'chainerx':
             device = chainerx.get_default_device()
             if mode == 'forward':
@@ -102,7 +105,7 @@ def _run_simple_op_benchmark(num_input, op, config, mode='forward', warmup=10, r
                     result.backward()
                     device.synchronize()
                     return result
-                both_time = get_time_metric(run_graph, input_func, warmup, runs)
+                both_time, _ = get_time_metric(run_graph, input_func, warmup, runs)
                 return both_time, config
     else:
         func = functools.partial(func, **config)

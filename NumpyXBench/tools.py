@@ -1,4 +1,5 @@
 import argparse
+import gc
 from itertools import chain
 import pprint
 import os
@@ -20,7 +21,8 @@ from . import operators
 from .utils.common import backend_switcher
 from .utils.benchmarks import run_op_frameworks_benchmark
 
-__all__ = ['test_numpy_coverage', 'test_all_operators', 'draw_one_plot', 'test_operators', 'generate_operator_reports']
+__all__ = ['test_numpy_coverage', 'test_all_operators', 'draw_one_plot', 'test_operators', 'generate_operator_reports',
+           'global_set_cpu', 'global_set_gpu']
 
 
 def global_set_gpu():
@@ -31,6 +33,13 @@ def global_set_gpu():
 def global_set_cpu():
     mxnet.test_utils.set_default_context(mxnet.cpu())
     chainerx.set_default_device('native')
+
+
+def get_toolkit_list():
+    toolkit_list = dir(toolkits)
+    toolkit_list = [i for i in toolkit_list if i.endswith('_toolkit')]
+    toolkit_list = [getattr(toolkits, i) for i in toolkit_list]
+    return toolkit_list
 
 
 def test_numpy_coverage(backend_name):
@@ -58,9 +67,7 @@ def test_numpy_coverage(backend_name):
 
 def test_all_operators(dtypes='RealTypes', mode='forward', is_random=True, times=6, warmup=10, runs=25):
     backends = ['chainerx', 'jax.numpy', 'mxnet.numpy', 'numpy']
-    toolkit_list = dir(toolkits)
-    toolkit_list = [i for i in toolkit_list if i.endswith('_toolkit')]
-    toolkit_list = [getattr(toolkits, i) for i in toolkit_list]
+    toolkit_list = get_toolkit_list()
     result = {}
     for toolkit in toolkit_list:
         name = toolkit.get_name()
@@ -131,24 +138,44 @@ def use_html_template(filename):
         f.writelines(html)
 
 
+def generate_one_report(toolkit, warmup, runs, info):
+    base_path = os.path.dirname(os.path.abspath(__file__))
+    backends = ['chainerx', 'jax.numpy', 'mxnet.numpy', 'numpy']
+    op_name = toolkit.get_name()
+    content = """Operator `{0}`
+==========={1}
+
+""".format(op_name, '=' * len(op_name))
+    for dtype in toolkit.get_forward_dtypes():
+        html_filename = "{0}_f_{1}.html".format(op_name, dtype)
+        html_file = os.path.join(base_path, '../doc/_static/temp', html_filename)
+        content += ".. include:: /_static/temp/{0}\n\n".format(html_filename)
+        data = run_op_frameworks_benchmark(*toolkit.get_tools([dtype], False),
+                                           backends, 'forward', 6, warmup, runs)
+        draw_one_plot(op_name, data, mode='file', filename=html_file,
+                      info=info + ", forward only" if info else None)
+        use_html_template(html_file)
+    if toolkit.get_backward_dtypes():
+        for dtype in toolkit.get_backward_dtypes():
+            html_filename = "{0}_b_{1}.html".format(op_name, dtype)
+            html_file = os.path.join(base_path, '../doc/_static/temp', html_filename)
+            content += ".. include:: /_static/temp/{0}\n\n".format(html_filename)
+            data = run_op_frameworks_benchmark(*toolkit.get_tools([dtype], False),
+                                               backends, 'both', 6, warmup, runs)
+            draw_one_plot(op_name, data, mode='file', filename=html_file,
+                          info=info + ", with backward" if info else None)
+            use_html_template(html_file)
+    rst_file = os.path.join(base_path, '../doc/reports', op_name + '.rst')
+    with open(rst_file, mode='w') as f:
+        f.write(content)
+    print("Done report generation for `{0}`!".format(op_name))
+
+
 def generate_operator_reports(warmup=10, runs=25, info=None):
-    pass
-#     base_path = os.path.dirname(os.path.abspath(__file__))
-#     data = test_all_blobs(dtypes=['float32'], mode='forward', is_random=True, times=6, warmup=warmup, runs=runs)
-#     for key in data.keys():
-#         # generate html files
-#         html_file = os.path.join(base_path, '../doc/_static/temp', key + '.html')
-#         draw_one_plot(key, data[key], mode='file', filename=html_file, info=info)
-#         use_html_template(html_file)
-#         # generate rst files
-#         rst_file = os.path.join(base_path, '../doc/reports', key + '.rst')
-#         content = """Operator `{0}`
-# ==========={1}
-#
-# .. include:: /_static/temp/{0}.html
-#         """.format(key, '=' * len(key))
-#         with open(rst_file, mode='w') as f:
-#             f.write(content)
+    toolkit_list = get_toolkit_list()
+    for toolkit in toolkit_list:
+        generate_one_report(toolkit, warmup, runs, info)
+        gc.collect()
 
 
 if __name__ == "__main__":
@@ -156,5 +183,10 @@ if __name__ == "__main__":
     parser.add_argument("--warmup", default=10, type=int)
     parser.add_argument("--runs", default=25, type=int)
     parser.add_argument("--info", default=None, type=str)
+    parser.add_argument("--device", default="cpu", type=str)
     args = parser.parse_args()
+    if args.device == "gpu":
+        global_set_gpu()
+    else:
+        global_set_cpu()
     generate_operator_reports(args.warmup, args.runs, args.info)

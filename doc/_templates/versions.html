@@ -7,8 +7,13 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Devices</dt>
-            <dd><a href="./">CPU</a></dd>
-            <dd><a href="gpu/">GPU</a></dd>
+            {% if current_device == "CPU" %}
+                <dd><a href="./">CPU</a></dd>
+                <dd><a href="gpu/">GPU</a></dd>
+            {% elif current_device == "GPU" %}
+                <dd><a href="../">CPU</a></dd>
+                <dd><a href="./">GPU</a></dd>
+            {% endif %}
         </dl>
     </div>
 </div>

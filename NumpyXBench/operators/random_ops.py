@@ -33,8 +33,10 @@ class RandomOp(CommonOp):
             module = sys.modules['.'.join([backend, 'random'])]
         except (AttributeError, KeyError) as e:
             raise Warning(f'Backend: {self._backend} not support or not installed!')
-
-        return getattr(module, self._name)
+        if hasattr(module, self._name):
+            return getattr(module, self._name)
+        else:
+            return None
 
 
 template_code = """

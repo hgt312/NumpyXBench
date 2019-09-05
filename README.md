@@ -84,15 +84,16 @@ pip install -r requirements.txt
 #### CPU only
 
 ```
-python -m NumpyXBench.tools  # -h for help
+CUDA_VISIBLE_DEVICES=-1 python -m NumpyXBench.tools --warmup 10 --runs 25 --device cpu --info "MacBook Pro, CPU"
 sphinx-build -b html . _build -A current_device=CPU
 ```
 
 #### With GPU enabled
 
 ```
-python -m NumpyXBench.tools  # -h for help
+CUDA_VISIBLE_DEVICES=-1 python -m NumpyXBench.tools --warmup 10 --runs 25 --device cpu --info "[Machine infomation]"
 sphinx-build -b html . _build -A current_device=CPU
+CUDA_VISIBLE_DEVICES=0 python -m NumpyXBench.tools --warmup 10 --runs 25 --device gpu --info "[Machine infomation]"
 sphinx-build -b html . _build/gpu -A current_device=GPU
 ```
 
