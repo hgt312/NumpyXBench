@@ -105,7 +105,7 @@ def draw_one_plot(name, data, mode="file", filename="demo.html", info=None):
                                       d['numpy'] / d['mxnet.numpy'] if d['mxnet.numpy'] else -1,
                                       d['numpy'] / d['jax.numpy'] if d['jax.numpy'] else -1,
                                       d['numpy'] / d['chainerx'] if d['chainerx'] else -1) for d in data))
-    offset = -max(rates) / 5
+    offset = -max(rates) / 15
     rates = [r if r > 0 else offset for r in rates]
     source = ColumnDataSource(data=dict(x=x, configs=configs, millisecond=millisecond, rates=rates))
     p = figure(x_range=FactorRange(*x),
