@@ -28,7 +28,7 @@ divide_toolkit = Toolkit(has_backward=True, name='divide', operator_cls=ops.Divi
                          determined_config_func=get_size_configs,
                          benchmark_func=run_binary_op_benchmark)
 
-mod_toolkit= Toolkit(has_backward=True, name='mod', operator_cls=ops.Mod,
-                     random_config_func=get_random_size_config,
-                     determined_config_func=get_size_configs,
-                     benchmark_func=run_binary_op_benchmark)
+mod_toolkit = Toolkit(has_backward=True, name='mod', operator_cls=ops.Mod,
+                      random_config_func=get_random_size_config,
+                      determined_config_func=get_size_configs,
+                      benchmark_func=run_binary_op_benchmark)

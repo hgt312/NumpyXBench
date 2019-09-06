@@ -117,12 +117,12 @@ def run_creation_op_benchmark(op, config, mode='forward', warmup=10, runs=25):
     return _run_simple_op_benchmark(0, op, config, mode, warmup, runs)
 
 
-def run_binary_op_benchmark(op, config, mode='forward', warmup=10, runs=25):
-    return _run_simple_op_benchmark(2, op, config, mode, warmup, runs)
-
-
 def run_unary_op_benchmark(op, config, mode='forward', warmup=10, runs=25):
     return _run_simple_op_benchmark(1, op, config, mode, warmup, runs)
+
+
+def run_binary_op_benchmark(op, config, mode='forward', warmup=10, runs=25):
+    return _run_simple_op_benchmark(2, op, config, mode, warmup, runs)
 
 
 def run_op_frameworks_benchmark(opc, config_func, benchmark_func, backends,

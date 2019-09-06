@@ -168,4 +168,5 @@ crashlytics-build.properties
 fabric.properties
 
 # Sphinx doc
-doc/_build
+doc/_build/*
+!doc/_build/index.html

@@ -7,12 +7,18 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Devices</dt>
+            {% set str_list = pathto(master_doc).split('/') %}
+            {% if str_list[0] != ".." %}
+                {% set start_str = "." %}
+            {% else %}
+                {% set start_str = ".." %}
+            {% endif %}
             {% if current_device == "CPU" %}
-                <dd><a href="./">CPU</a></dd>
-                <dd><a href="gpu/">GPU</a></dd>
+                <dd><a href="">CPU</a></dd>
+                <dd><a href={{ start_str ~ "/../gpu/" ~ pagename ~ ".html" }}>GPU</a></dd>
             {% elif current_device == "GPU" %}
-                <dd><a href="../">CPU</a></dd>
-                <dd><a href="./">GPU</a></dd>
+                <dd><a href={{ start_str ~ "/../cpu/" ~ pagename ~ ".html" }}>CPU</a></dd>
+                <dd><a href="">GPU</a></dd>
             {% endif %}
         </dl>
     </div>
