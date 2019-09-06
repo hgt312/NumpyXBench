@@ -80,6 +80,32 @@ A config is consist of parameter used to generate input tensor and other necessa
 
 The input of a config generation function is always `dtype`. To generate random configs, return a dict; to generate determined configs, return a list of dicts.
 
+```python
+# random
+def get_random_size_config(dtypes):
+    config_space = random_size_cs
+    config = config_space.sample_configuration()
+    shape = (config.get('size'),)
+    # random dtype
+    config_space = cs.ConfigurationSpace()
+    config_space.add_hyperparameter(csh.CategoricalHyperparameter('dtype', choices=dtypes))
+    config = config_space.sample_configuration()
+    dtype = config.get('dtype')
+    return {'shape': shape, 'dtype': dtype}
+
+
+# determined
+def get_size_configs(dtypes):
+    dtype = dtypes[0]
+    configs = [{'shape': (50,), 'dtype': dtype},
+               {'shape': (5000,), 'dtype': dtype},
+               {'shape': (50000,), 'dtype': dtype},
+               {'shape': (100000,), 'dtype': dtype},
+               {'shape': (1000000,), 'dtype': dtype},
+               {'shape': (3000000,), 'dtype': dtype}]
+    return configs
+```
+
 *P.S.: There are some basic config spaces that can be useful for writing config functions.*
 
 ### Step 2, write benchmark functions:
@@ -90,8 +116,15 @@ Handle different part of config by different methods: handle tensors by a python
 
 ### Step 3, register the operator:
 
-A toolkit tells an operator's name, corresponding python class, if has backward, support types, config generate functions and benchmark function.
+A toolkit tells an operator's name, corresponding python class, if has backward, support types, config generate functions and benchmark function. A sample toolkit is shown below, whole the parameter list can be read in source code.
 
 1. Write a toolkit, then add it to `__all__`
-
 2. Add it to `doc/report.rst`
+
+```python
+multiply_toolkit = Toolkit(has_backward=True, name='multiply', operator_cls=ops.Multiply,
+                           random_config_func=get_random_size_config,
+                           determined_config_func=get_size_configs,
+                           benchmark_func=run_binary_op_benchmark)
+```
+
