@@ -72,4 +72,26 @@ sum_toolkit = Toolkit(has_backward=True, name='sum', operator_cls=ops.Sum,
 
 ## Contribute
 
-For all the operator list can be obtained, the mainly work is to write config generation functions and corresponding benchmark functions for lots of types of operators.
+For all the operator list can be obtained, the mainly work is to write config generation functions and corresponding benchmark functions for lots of types of operators. After that, register the operator so that it can be seen in generated report.
+
+### Step 1, write config generation functions:
+
+A config is consist of parameter used to generate input tensor and other necessary arguments. A single config is a python dict, for example `{'shape': (10, 20), 'dtype': 'float32'}`.
+
+The input of a config generation function is always `dtype`. To generate random configs, return a dict; to generate determined configs, return a list of dicts.
+
+*P.S.: There are some basic config spaces that can be useful for writing config functions.*
+
+### Step 2, write benchmark functions:
+
+A benchmark function defines how to test the performance of a specific operator, its implementation is related to the config corresponding to the operator.
+
+Handle different part of config by different methods: handle tensors by a python list, then handle other arguments by a python dict. A general benchmark function which can handle all configs with tensors with same shape and dtype is completed, it could be a good reference.
+
+### Step 3, register the operator:
+
+A toolkit tells an operator's name, corresponding python class, if has backward, support types, config generate functions and benchmark function.
+
+1. Write a toolkit, then add it to `__all__`
+
+2. Add it to `doc/report.rst`
