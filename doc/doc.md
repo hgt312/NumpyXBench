@@ -1,6 +1,6 @@
 # Development Document
 
-### Ops
+## Ops
 
 We write configs for different categories of numpy operators, this can be obtain from [deepnumpy-doc](https://github.com/mli/deepnumpy-doc):
 
@@ -9,7 +9,7 @@ We write configs for different categories of numpy operators, this can be obtain
 - Array creations
 - …...
 
-### Frameworks
+## Frameworks
 
 We should support these frameworks, some has same API as NumPy, can be supported easily, while others may cost a lot of time to deal with:
 
@@ -20,7 +20,7 @@ We should support these frameworks, some has same API as NumPy, can be supported
 - torch (TBD)
 - tensorflow 1&2 (TBD)
 
-### Design
+## Design
 
 **Ops package:** in directory `operators`, ops with different numpy modules in different files, an Op object only need one argument, `backend`. All the ops under numpy should in `common_ops.py`, and linear algebra ops (under numpy.linalg) should be written in `la_ops.py` …...
 
