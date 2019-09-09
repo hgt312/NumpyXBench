@@ -5,16 +5,15 @@ from .helpers import get_dtypes
 
 class Toolkit(object):
     def __init__(self, has_backward=True, forward_dtypes='AllTypes', backward_dtypes='RealTypes',
-                 name=None, operator_cls=None, random_config_func=None, determined_config_func=None,
-                 benchmark_func=None):
+                 operator_cls=None, random_config_func=None, determined_config_func=None, benchmark_func=None):
         self.has_backward = has_backward
         self.forward_dtypes = forward_dtypes
         self.backward_dtypes = backward_dtypes
-        self.name = name
         self.operator_cls = operator_cls
         self.random_config_func = random_config_func
         self.determined_config_func = determined_config_func
         self.benchmark_func = benchmark_func
+        self.name = self.operator_cls.get_name()
         if not self.has_backward:
             self.backward_dtypes = None
 

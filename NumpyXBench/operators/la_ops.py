@@ -29,7 +29,7 @@ class LAOp(CommonOp):
         try:
             module = sys.modules['.'.join([backend_switcher[self._backend], 'linalg'])]
         except (AttributeError, KeyError) as e:
-            raise Warning(f'Backend: {self._backend} not support or not installed!')
+            return None
         if hasattr(module, self._name):
             return getattr(module, self._name)
         else:
@@ -38,8 +38,9 @@ class LAOp(CommonOp):
 
 template_code = """
 class {{ name | capitalize }}(LAOp):
+    _name = '{{ name }}'
     def __init__(self, backend):
-        super({{ name | capitalize }}, self).__init__(backend=backend, name='{{ name }}')
+        super({{ name | capitalize }}, self).__init__(backend=backend)
 """
 template = Template(template_code)
 

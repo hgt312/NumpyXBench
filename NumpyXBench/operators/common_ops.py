@@ -20,8 +20,9 @@ class CommonOp(object):
     Common operator class, used to generate classes of operator which
     under namespace `numpy` automatically.
     """
+    _name = None
 
-    def __init__(self, backend='numpy', name=None):
+    def __init__(self, backend='numpy'):
         """
         Init function
 
@@ -29,11 +30,8 @@ class CommonOp(object):
         ----------
         backend : str
             Name of the backend.
-        name : str
-            Name of the operator.
         """
         self._backend = backend
-        self._name = name
 
     def get_backend(self):
         """
@@ -41,11 +39,12 @@ class CommonOp(object):
         """
         return self._backend
 
-    def get_name(self):
+    @classmethod
+    def get_name(cls):
         """
         Get the name of the Op.
         """
-        return self._name
+        return cls._name
 
     def get_forward_func(self):
         """
@@ -54,7 +53,7 @@ class CommonOp(object):
         try:
             module = sys.modules[backend_switcher[self._backend]]
         except (AttributeError, KeyError) as e:
-            raise Warning(f'Backend: {self._backend} not support or not installed!')
+            return None
         if hasattr(module, self._name):
             return getattr(module, self._name)
         else:
@@ -63,8 +62,9 @@ class CommonOp(object):
 
 template_code = """
 class {{ name | capitalize }}(CommonOp):
+    _name = '{{ name }}'
     def __init__(self, backend):
-        super({{ name | capitalize }}, self).__init__(backend=backend, name='{{ name }}')
+        super({{ name | capitalize }}, self).__init__(backend=backend)
 """
 template = Template(template_code)
 

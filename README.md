@@ -13,7 +13,7 @@ I divide opertors into several categories:
 
 | MXNet (numpy branch) | ChainerX | JAX   |
 | -------------------- | -------- | ----- |
-| 17.0%                | 23.8%    | 91.2% |
+| 17.0%                | 23.8%    | 42.1% |
 
 ## Install
 
