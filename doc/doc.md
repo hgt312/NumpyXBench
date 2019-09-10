@@ -58,12 +58,12 @@ class MyRandomNormal(CommonOp):
 - Tool for test coverage
 - Tools for generate result plots and website generation
 
-**Toolkits package:** Toolkits package register an operator, its name, its config-generation function and benchmark function. The toolkits is divided by operator type. In addition, one toolkits record the information such as if the operator has backward and the types it supported.
+**Toolkits package:** Toolkits package register an operator, its config-generation function and benchmark function. The toolkits is divided by operator type. In addition, one toolkits record the information such as if the operator has backward and the types it supported.
 
 A sample toolkit:
 
 ```python
-sum_toolkit = Toolkit(has_backward=True, name='sum', operator_cls=ops.Sum,
+sum_toolkit = Toolkit(has_backward=True, operator_cls=ops.Sum,
                       random_config_func=get_random_withaxis_config,
                       benchmark_func=run_unary_op_benchmark)
 ```
@@ -116,13 +116,13 @@ Handle different part of config by different methods: handle tensors by a python
 
 ### Step 3, register the operator:
 
-A toolkit tells an operator's name, corresponding python class, if has backward, support types, config generate functions and benchmark function. A sample toolkit is shown below, whole the parameter list can be read in source code.
+A toolkit tells an operator's corresponding python class, if has backward, support types, config generate functions and benchmark function. A sample toolkit is shown below, whole the parameter list can be read in source code.
 
 1. Write a toolkit, then add it to `__all__`
 2. Add it to `doc/report.rst`
 
 ```python
-multiply_toolkit = Toolkit(has_backward=True, name='multiply', operator_cls=ops.Multiply,
+multiply_toolkit = Toolkit(has_backward=True, operator_cls=ops.Multiply,
                            random_config_func=get_random_size_config,
                            determined_config_func=get_size_configs,
                            benchmark_func=run_binary_op_benchmark)
