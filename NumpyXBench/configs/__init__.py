@@ -49,7 +49,7 @@ def get_size_configs(dtypes):
                {'shape': (32, 3, 224, 224), 'dtype': dtype},
                {'shape': (32, 224, 224, 3), 'dtype': dtype},
                {'shape': (64, 3, 224, 224), 'dtype': dtype},
-               {'shape': (10000000,), 'dtype': dtype}]
+               {'shape': (100, 100, 100, 10), 'dtype': dtype}]
     return configs
 
 

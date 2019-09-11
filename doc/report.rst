@@ -7,7 +7,7 @@ For each operator, there is a bar chart report, x-axis shows configs, y-axis sho
 so that value of `NumPy` is 1 (when backward, value of `MXNet` is 1), \
 and there is no bar if its backend is not implemented/supported. \
 Some operators use a series of determined config, while others use random generated configs, \
-hover the mouse over bars, you can see the detail config.
+hover the mouse over bars, you can see the detail config and results.
 
 **Note that for NumPy has no GPU support, the results in GPU version are computed by CPU on the GPU-machine. \
 In addition, the y axis of the chart is not start from 0 so that the bar won't be too short for hovering.**
