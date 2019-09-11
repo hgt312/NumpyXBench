@@ -111,12 +111,12 @@ def draw_one_plot(name, data, mode="file", filename="demo.html", info=None):
     else:
         output_notebook()
     palette = ["#756bb1", "#43a2ca", "#e84d60", "#2ca25f"]
-    tooltips = [("config", "@configs"), ("millisecond", "@millisecond"), ("std_var", "@stds"), ("speedup", "@rates")]
+    tooltips = [("config", "@configs"), ("latency", "@millisecond ms"), ("std_var", "@stds ms"), ("speedup", "@rates")]
 
     configs = list(chain.from_iterable([pprint.pformat(d['config'], width=1)] * 4 for d in data))
     statistics = list(chain.from_iterable((d['numpy'], d['mxnet.numpy'], d['jax.numpy'], d['chainerx']) for d in data))
-    millisecond = [i[0] * 1000 for i in statistics]
-    stds = [i[1] for i in statistics]
+    millisecond = [i[0] * 1000 if i[0] else None for i in statistics]
+    stds = [i[1] * 1000 if i[1] else None for i in statistics]
     rates = list(chain.from_iterable((1.,
                                       d['numpy'][0] / d['mxnet.numpy'][0] if d['mxnet.numpy'][0] else -1,
                                       d['numpy'][0] / d['jax.numpy'][0] if d['jax.numpy'][0] else -1,
@@ -155,12 +155,12 @@ def draw_one_backward_plot(name, data, mode="file", filename="demo.html", info=N
     else:
         output_notebook()
     palette = ["#43a2ca", "#e84d60", "#2ca25f"]
-    tooltips = [("config", "@configs"), ("millisecond", "@millisecond"), ("std_var", "@stds"), ("speedup", "@rates")]
+    tooltips = [("config", "@configs"), ("latency", "@millisecond ms"), ("std_var", "@stds ms"), ("speedup", "@rates")]
 
     configs = list(chain.from_iterable([pprint.pformat(d['config'], width=1)] * 3 for d in data))
     statistics = list(chain.from_iterable((d['mxnet.numpy'], d['jax.numpy'], d['chainerx']) for d in data))
-    millisecond = [i[0] * 1000 for i in statistics]
-    stds = [i[1] for i in statistics]
+    millisecond = [i[0] * 1000 if i[0] else None for i in statistics]
+    stds = [i[1] * 1000 if i[1] else None for i in statistics]
     rates = list(chain.from_iterable((1.,
                                       d['mxnet.numpy'][0] / d['jax.numpy'][0] if d['jax.numpy'][0] else -1,
                                       d['mxnet.numpy'][0] / d['chainerx'][0] if d['chainerx'][0] else -1) for d in data))
