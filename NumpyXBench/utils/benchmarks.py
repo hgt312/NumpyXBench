@@ -141,7 +141,7 @@ def run_op_frameworks_benchmark(opc, config_func, benchmark_func, backends,
                     numpy.random.seed(np_seed)
                     result[backend_] = benchmark_func(opc(backend_), config, mode, warmup, runs)[0]
                 except Exception:
-                    result[backend_] = None
+                    result[backend_] = (None, None)
             result['config'] = config
             result_list.append(result)
         return result_list
@@ -157,7 +157,7 @@ def run_op_frameworks_benchmark(opc, config_func, benchmark_func, backends,
                     numpy.random.seed(np_seed)
                     result[backend_] = benchmark_func(opc(backend_), config, mode, warmup, runs)[0]
                 except Exception:
-                    result[backend_] = None
+                    result[backend_] = (None, None)
             result['config'] = config
             result_list.append(result)
         return result_list
