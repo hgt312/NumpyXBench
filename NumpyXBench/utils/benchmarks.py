@@ -23,7 +23,7 @@ __all__ = ['run_binary_op_benchmark', 'run_unary_op_benchmark', 'run_op_framewor
 
 def _run_simple_op_benchmark(num_input, op, config, mode='forward', warmup=10, runs=25):
     if not op.get_forward_func():
-        return None, config
+        return (None, None), config
     backend = backend_switcher[op.get_backend()]
     func = op.get_forward_func()
     if num_input:
@@ -35,16 +35,16 @@ def _run_simple_op_benchmark(num_input, op, config, mode='forward', warmup=10, r
                 result = func(*inputs)
                 return result
             input_func = functools.partial(prepare_numpy_inputs, num_input, tensor_config)
-            forward_time, _ = get_time_metric(benchmark_func, input_func, warmup, runs)
-            return forward_time, config
+            forward_time, forward_std = get_time_metric(benchmark_func, input_func, warmup, runs)
+            return (forward_time, forward_std), config
         elif backend == 'mxnet.numpy':
             if mode == 'forward':
                 def benchmark_func(inputs):
                     result = func(*inputs)
                     return result
                 input_func = functools.partial(prepare_mxnet_inputs, num_input, tensor_config, False)
-                forward_time, _ = get_time_metric(benchmark_func, input_func, warmup, runs)
-                return forward_time, config
+                forward_time, forward_std = get_time_metric(benchmark_func, input_func, warmup, runs)
+                return (forward_time, forward_std), config
             else:
                 input_func = functools.partial(prepare_mxnet_inputs, num_input, tensor_config, True)
 
@@ -53,8 +53,8 @@ def _run_simple_op_benchmark(num_input, op, config, mode='forward', warmup=10, r
                         result = func(*inputs)
                     result.backward()
                     return result
-                both_time, _ = get_time_metric(run_graph, input_func, warmup, runs)
-                return both_time, config
+                both_time, both_std = get_time_metric(run_graph, input_func, warmup, runs)
+                return (both_time, both_std), config
         elif backend == 'jax.numpy':
             input_func = functools.partial(prepare_jax_inputs, num_input, tensor_config)
             if mode == 'forward':
@@ -68,8 +68,8 @@ def _run_simple_op_benchmark(num_input, op, config, mode='forward', warmup=10, r
                         pass
                     return result
 
-                forward_time, _ = get_time_metric(benchmark_func, input_func, warmup, runs)
-                return forward_time, config
+                forward_time, forward_std = get_time_metric(benchmark_func, input_func, warmup, runs)
+                return (forward_time, forward_std), config
             else:
                 def grad_func(*args):
                     return jax.numpy.sum(func(*args))
@@ -83,8 +83,8 @@ def _run_simple_op_benchmark(num_input, op, config, mode='forward', warmup=10, r
                     except Exception:
                         pass
                     return result
-                both_time, _ = get_time_metric(benchmark_func, input_func, warmup, runs)
-                return both_time, config
+                both_time, both_std = get_time_metric(benchmark_func, input_func, warmup, runs)
+                return (both_time, both_std), config
         elif backend == 'chainerx':
             device = chainerx.get_default_device()
             if mode == 'forward':
@@ -94,8 +94,8 @@ def _run_simple_op_benchmark(num_input, op, config, mode='forward', warmup=10, r
                     res = func(*inputs)
                     device.synchronize()
                     return res
-                forward_time, _ = get_time_metric(benchmark_func, input_func, warmup, runs)
-                return forward_time, config
+                forward_time, forward_std = get_time_metric(benchmark_func, input_func, warmup, runs)
+                return (forward_time, forward_std), config
             else:
                 input_func = functools.partial(prepare_chainerx_inputs, num_input, tensor_config, True)
 
@@ -105,12 +105,12 @@ def _run_simple_op_benchmark(num_input, op, config, mode='forward', warmup=10, r
                     result.backward()
                     device.synchronize()
                     return result
-                both_time, _ = get_time_metric(run_graph, input_func, warmup, runs)
-                return both_time, config
+                both_time, both_std = get_time_metric(run_graph, input_func, warmup, runs)
+                return (both_time, both_std), config
     else:
         func = functools.partial(func, **config)
-        forward_time, _ = get_time_metric(func, None, warmup, runs)
-        return forward_time, config
+        forward_time, forward_std = get_time_metric(func, None, warmup, runs)
+        return (forward_time, forward_std), config
 
 
 def run_creation_op_benchmark(op, config, mode='forward', warmup=10, runs=25):
@@ -139,7 +139,7 @@ def run_op_frameworks_benchmark(opc, config_func, benchmark_func, backends,
                 backend_ = backend_switcher[backend]
                 try:
                     numpy.random.seed(np_seed)
-                    result[backend_] = benchmark_func(opc(backend_), config, mode, warmup, runs)[0] * 1000
+                    result[backend_] = benchmark_func(opc(backend_), config, mode, warmup, runs)[0]
                 except Exception:
                     result[backend_] = None
             result['config'] = config
@@ -155,7 +155,7 @@ def run_op_frameworks_benchmark(opc, config_func, benchmark_func, backends,
                 backend_ = backend_switcher[backend]
                 try:
                     numpy.random.seed(np_seed)
-                    result[backend_] = benchmark_func(opc(backend_), config, mode, warmup, runs)[0] * 1000
+                    result[backend_] = benchmark_func(opc(backend_), config, mode, warmup, runs)[0]
                 except Exception:
                     result[backend_] = None
             result['config'] = config

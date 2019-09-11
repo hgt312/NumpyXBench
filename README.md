@@ -11,6 +11,8 @@ I divide opertors into several categories:
 - Linear algebra operators, those can be found under `numpy.linalg`
 - Random operators, those can be found under `numpy.random`
 
+Totally, there are 497 operators generated.
+
 | MXNet (numpy branch) | ChainerX | JAX   |
 | -------------------- | -------- | ----- |
 | 17.0%                | 23.8%    | 42.1% |

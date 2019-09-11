@@ -1,4 +1,5 @@
 import functools
+from statistics import mean, pstdev
 import timeit
 
 timeit.template = """
@@ -37,4 +38,4 @@ def get_time_metric(benchmark_func, input_func=None, warmup=10, runs=25):
         else:
             result = timeit.timeit(benchmark_func, number=1)
         results.append(result[0])
-    return sum(results) / runs, result[1]
+    return mean(results), pstdev(results)

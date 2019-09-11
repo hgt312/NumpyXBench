@@ -21,8 +21,8 @@ from . import operators
 from .utils.common import backend_switcher
 from .utils.benchmarks import run_op_frameworks_benchmark
 
-__all__ = ['test_numpy_coverage', 'test_all_operators', 'draw_one_plot', 'test_operators', 'generate_operator_reports',
-           'global_set_cpu', 'global_set_gpu', 'generate_one_report']
+__all__ = ['test_numpy_coverage', 'test_all_operators', 'draw_one_plot', 'test_operators', 'draw_one_backward_plot',
+           'generate_operator_reports', 'global_set_cpu', 'global_set_gpu', 'generate_one_report']
 
 
 def global_set_gpu():
@@ -111,19 +111,64 @@ def draw_one_plot(name, data, mode="file", filename="demo.html", info=None):
     else:
         output_notebook()
     palette = ["#756bb1", "#43a2ca", "#e84d60", "#2ca25f"]
-    tooltips = [("config", "@configs"), ("millisecond", "@millisecond"), ("speedup", "@rates")]
+    tooltips = [("config", "@configs"), ("millisecond", "@millisecond"), ("std_var", "@stds"), ("speedup", "@rates")]
 
     configs = list(chain.from_iterable([pprint.pformat(d['config'], width=1)] * 4 for d in data))
-    millisecond = list(chain.from_iterable((d['numpy'], d['mxnet.numpy'], d['jax.numpy'], d['chainerx']) for d in data))
+    statistics = list(chain.from_iterable((d['numpy'], d['mxnet.numpy'], d['jax.numpy'], d['chainerx']) for d in data))
+    millisecond = [i[0] * 1000 for i in statistics]
+    stds = [i[1] for i in statistics]
     rates = list(chain.from_iterable((1.,
-                                      d['numpy'] / d['mxnet.numpy'] if d['mxnet.numpy'] else -1,
-                                      d['numpy'] / d['jax.numpy'] if d['jax.numpy'] else -1,
-                                      d['numpy'] / d['chainerx'] if d['chainerx'] else -1) for d in data))
+                                      d['numpy'][0] / d['mxnet.numpy'][0] if d['mxnet.numpy'][0] else -1,
+                                      d['numpy'][0] / d['jax.numpy'][0] if d['jax.numpy'][0] else -1,
+                                      d['numpy'][0] / d['chainerx'][0] if d['chainerx'][0] else -1) for d in data))
     offset = -max(rates) / 15
     rates = [r if r > 0 else offset for r in rates]
-    source = ColumnDataSource(data=dict(x=x, configs=configs, millisecond=millisecond, rates=rates))
+    source = ColumnDataSource(data=dict(x=x, configs=configs, millisecond=millisecond, rates=rates, stds=stds))
     p = figure(x_range=FactorRange(*x),
                plot_height=600, plot_width=800,
+               title=title, y_axis_label="Speedup",
+               tooltips=tooltips,
+               toolbar_location="above")
+    p.vbar(x='x', top='rates', source=source, width=0.9, bottom=offset, line_color="white",
+           fill_color=factor_cmap('x', palette=palette, factors=backends, start=1, end=2))
+    p.y_range.start = offset
+    p.x_range.range_padding = 0.1
+    p.xaxis.major_label_orientation = 1
+    p.xgrid.grid_line_color = None
+    if mode == "file":
+        save(p)
+    else:
+        show(p)
+
+
+def draw_one_backward_plot(name, data, mode="file", filename="demo.html", info=None):
+    title = "NumPy operator {0}".format(name)
+    if info:
+        title += " - {0}".format(info)
+    num = len(data)
+    x_labels = ['config{0}'.format(i + 1) for i in range(num)]
+    backends = ['mxnet', 'jax', 'chainerx']
+    x = [(l, b) for l in x_labels for b in backends]
+
+    if mode == "file":
+        output_file(filename)
+    else:
+        output_notebook()
+    palette = ["#43a2ca", "#e84d60", "#2ca25f"]
+    tooltips = [("config", "@configs"), ("millisecond", "@millisecond"), ("std_var", "@stds"), ("speedup", "@rates")]
+
+    configs = list(chain.from_iterable([pprint.pformat(d['config'], width=1)] * 3 for d in data))
+    statistics = list(chain.from_iterable((d['mxnet.numpy'], d['jax.numpy'], d['chainerx']) for d in data))
+    millisecond = [i[0] * 1000 for i in statistics]
+    stds = [i[1] for i in statistics]
+    rates = list(chain.from_iterable((1.,
+                                      d['mxnet.numpy'][0] / d['jax.numpy'][0] if d['jax.numpy'][0] else -1,
+                                      d['mxnet.numpy'][0] / d['chainerx'][0] if d['chainerx'][0] else -1) for d in data))
+    offset = -max(rates) / 15
+    rates = [r if r > 0 else offset for r in rates]
+    source = ColumnDataSource(data=dict(x=x, configs=configs, millisecond=millisecond, rates=rates, stds=stds))
+    p = figure(x_range=FactorRange(*x),
+               plot_height=600, plot_width=700,
                title=title, y_axis_label="Speedup",
                tooltips=tooltips,
                toolbar_location="above")
@@ -175,8 +220,8 @@ def generate_one_report(toolkit_name, warmup, runs, info):
             content += ".. include:: /_static/temp/{0}\n\n".format(html_filename)
             data = run_op_frameworks_benchmark(*toolkit.get_tools([dtype], False),
                                                backends, 'both', 6, warmup, runs)
-            draw_one_plot(op_name, data, mode='file', filename=html_file,
-                          info=info + ", {0}, with backward".format(dtype) if info else None)
+            draw_one_backward_plot(op_name, data, mode='file', filename=html_file,
+                                   info=info + ", {0}, with backward".format(dtype) if info else None)
             use_html_template(html_file)
             gc.collect()
     rst_file = os.path.join(base_path, '../doc/reports', op_name + '.rst')

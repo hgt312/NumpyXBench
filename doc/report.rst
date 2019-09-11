@@ -3,14 +3,17 @@ Operator reports
 
 The finished operator reports are listed below.
 
-For each operator, there is a bar chart report, x-axis shows configs, y-axis shows speedup rate with `NumPy`, \
-value of `NumPy` is 1, and there is no bar if its backend is not implemented/supported. \
+For each operator, there is a bar chart report, x-axis shows configs, y-axis shows speedup rate with `NumPy`/`MXNet`, \
+so that value of `NumPy` is 1 (when backward, value of `MXNet` is 1), \
+and there is no bar if its backend is not implemented/supported. \
 Some operators use a series of determined config, while others use random generated configs, \
 hover the mouse over bars, you can see the detail config.
 
-**Note that for NumPy has no GPU support and no backward, \
-the results in GPU version and backward version report are computed by CPU in forward mode. \
+**Note that for NumPy has no GPU support, the results in GPU version are computed by CPU on the GPU-machine. \
 In addition, the y axis of the chart is not start from 0 so that the bar won't be too short for hovering.**
+
+.. image:: /_static/img/plot_help.png
+   :height: 300px
 
 Binary operators
 ****************

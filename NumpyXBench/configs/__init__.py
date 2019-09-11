@@ -44,12 +44,12 @@ def get_random_size_config(dtypes):
 
 def get_size_configs(dtypes):
     dtype = dtypes[0]
-    configs = [{'shape': (50,), 'dtype': dtype},
-               {'shape': (5000,), 'dtype': dtype},
-               {'shape': (50000,), 'dtype': dtype},
-               {'shape': (100000,), 'dtype': dtype},
-               {'shape': (1000000,), 'dtype': dtype},
-               {'shape': (3000000,), 'dtype': dtype}]
+    configs = [{'shape': (1, 28, 28), 'dtype': dtype},
+               {'shape': (64, 28, 28), 'dtype': dtype},
+               {'shape': (32, 3, 224, 224), 'dtype': dtype},
+               {'shape': (32, 224, 224, 3), 'dtype': dtype},
+               {'shape': (64, 3, 224, 224), 'dtype': dtype},
+               {'shape': (10000000,), 'dtype': dtype}]
     return configs
 
 
