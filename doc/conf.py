@@ -179,5 +179,11 @@ epub_exclude_files = ['search.html']
 
 
 # -- Extension configuration -------------------------------------------------
+html_js_files = [
+    "https://cdn.pydata.org/bokeh/release/bokeh-1.3.4.min.js",
+    "https://cdn.pydata.org/bokeh/release/bokeh-widgets-1.3.4.min.js",
+    "https://cdn.pydata.org/bokeh/release/bokeh-tables-1.3.4.min.js"
+]
+
 def setup(app):
     app.add_stylesheet('css/my_theme.css')

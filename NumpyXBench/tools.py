@@ -10,7 +10,8 @@ try:
 except Exception:
     pass
 
-from bokeh.io import save, show, output_file, output_notebook
+from bokeh.embed import components
+from bokeh.io import show, output_file, output_notebook
 from bokeh.models import ColumnDataSource, FactorRange
 from bokeh.plotting import figure
 from bokeh.transform import factor_cmap
@@ -111,7 +112,7 @@ def draw_one_plot(name, data, mode="file", filename="demo.html", info=None):
     else:
         output_notebook()
     palette = ["#756bb1", "#43a2ca", "#e84d60", "#2ca25f"]
-    tooltips = [("config", "@configs"), ("latency", "@millisecond ms"), ("std_var", "@stds ms"), ("speedup", "@rates")]
+    tooltips = [("config", "@configs"), ("latency", "@millisecond ms"), ("std_dev", "@stds ms"), ("speedup", "@rates")]
 
     configs = list(chain.from_iterable([pprint.pformat(d['config'], width=1)] * 4 for d in data))
     statistics = list(chain.from_iterable((d['numpy'], d['mxnet.numpy'], d['jax.numpy'], d['chainerx']) for d in data))
@@ -136,7 +137,10 @@ def draw_one_plot(name, data, mode="file", filename="demo.html", info=None):
     p.xaxis.major_label_orientation = 1
     p.xgrid.grid_line_color = None
     if mode == "file":
-        save(p)
+        with open(filename, mode='w') as f:
+            script, div = components(p)
+            f.write(script)
+            f.write(div)
     else:
         show(p)
 
@@ -155,7 +159,7 @@ def draw_one_backward_plot(name, data, mode="file", filename="demo.html", info=N
     else:
         output_notebook()
     palette = ["#43a2ca", "#e84d60", "#2ca25f"]
-    tooltips = [("config", "@configs"), ("latency", "@millisecond ms"), ("std_var", "@stds ms"), ("speedup", "@rates")]
+    tooltips = [("config", "@configs"), ("latency", "@millisecond ms"), ("std_dev", "@stds ms"), ("speedup", "@rates")]
 
     configs = list(chain.from_iterable([pprint.pformat(d['config'], width=1)] * 3 for d in data))
     statistics = list(chain.from_iterable((d['mxnet.numpy'], d['jax.numpy'], d['chainerx']) for d in data))
@@ -168,10 +172,10 @@ def draw_one_backward_plot(name, data, mode="file", filename="demo.html", info=N
     rates = [r if r > 0 else offset for r in rates]
     source = ColumnDataSource(data=dict(x=x, configs=configs, millisecond=millisecond, rates=rates, stds=stds))
     p = figure(x_range=FactorRange(*x),
-               plot_height=600, plot_width=700,
+               plot_height=530, plot_width=700,
                title=title, y_axis_label="Speedup",
                tooltips=tooltips,
-               toolbar_location="above")
+               toolbar_location="right")
     p.vbar(x='x', top='rates', source=source, width=0.9, bottom=offset, line_color="white",
            fill_color=factor_cmap('x', palette=palette, factors=backends, start=1, end=2))
     p.y_range.start = offset
@@ -179,7 +183,10 @@ def draw_one_backward_plot(name, data, mode="file", filename="demo.html", info=N
     p.xaxis.major_label_orientation = 1
     p.xgrid.grid_line_color = None
     if mode == "file":
-        save(p)
+        with open(filename, mode='w') as f:
+            script, div = components(p)
+            f.write(script)
+            f.write(div)
     else:
         show(p)
 
@@ -189,7 +196,7 @@ def use_html_template(filename):
         html = f.readlines()
     html[-1] += '\n'
     html = ["    " + h for h in html]
-    html.insert(0, ".. raw:: html")
+    html.insert(0, ".. raw:: html\n")
     with open(filename, mode="w") as f:
         f.writelines(html)
 
