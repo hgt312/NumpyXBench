@@ -29,19 +29,22 @@ In this part, most of ops can be generate by template. If the path to get the op
 If you want to add your custom op class, sample code is shown below, just return the function pointer of each backend, actually different operator can be returned:
 
 ```python
-__all__ = ['MyRandomNormal']  # add op to here
+__all__ = ['TVMAdd']  # add op to here
 
-class MyRandomNormal(CommonOp):
+class TVMAdd(CommonOp):
+    _name = "tvm_add"
     def __init__(self, backend):
-        super(MyRandomNormal, self).__init__(backend=backend)
+        super(TVMAdd, self).__init__(backend=backend)
 
     def get_forward_func(self, *args, **kwargs):
         if backend_switcher[self._backend] == "numpy":
-            return numpy.random.normal
+            return numpy.add
         elif backend_switcher[self._backend] == "jax.numpy":
-            return jax.random.normal
-        else:
-            raise NotImplementedError("Backend not supported now!")
+            return jax.add
+        elif backend_switcher[self._backend] == "mxnet.numpy":
+            return mxnet.numpy.add
+        elif backend_switcher[self._backend] == "chainerx":
+            return chainerx.add
 ```
 
 **Configs package:** get information of input arguments: **input shape, dtype** …… It depends on the type of op. Need to determine benchmark ways (random size/several determined size). A big config function can be built by multiple small provided config spaces. Random config would be a python dict, while the determined would be a list.
@@ -97,12 +100,12 @@ def get_random_size_config(dtypes):
 # determined
 def get_size_configs(dtypes):
     dtype = dtypes[0]
-    configs = [{'shape': (50,), 'dtype': dtype},
-               {'shape': (5000,), 'dtype': dtype},
-               {'shape': (50000,), 'dtype': dtype},
-               {'shape': (100000,), 'dtype': dtype},
-               {'shape': (1000000,), 'dtype': dtype},
-               {'shape': (3000000,), 'dtype': dtype}]
+    configs = [{'shape': (1, 28, 28), 'dtype': dtype},
+               {'shape': (64, 28, 28), 'dtype': dtype},
+               {'shape': (32, 3, 224, 224), 'dtype': dtype},
+               {'shape': (32, 224, 224, 3), 'dtype': dtype},
+               {'shape': (64, 3, 224, 224), 'dtype': dtype},
+               {'shape': (100, 100, 100, 10), 'dtype': dtype}]
     return configs
 ```
 
