@@ -5,7 +5,7 @@ requirements = [
     'numpy',
     'ConfigSpace',
     'Jinja2',
-    'bokeh'
+    'bokeh==1.3.4'
 ]
 
 setup(

@@ -1,7 +1,7 @@
 NumPy Compatible Operator Benchmark
 ===================================
 
-Built in |today|.
+Built on |today|.
 
 .. toctree::
     :maxdepth: 2

@@ -58,7 +58,7 @@ def _run_simple_op_benchmark(num_input, op, config, mode='forward', warmup=10, r
         elif backend == 'jax.numpy':
             input_func = functools.partial(prepare_jax_inputs, num_input, tensor_config)
             if mode == 'forward':
-                jit_func = jax.jit(func, list(range(num_input)))
+                jit_func = jax.jit(func)
 
                 def benchmark_func(inputs):
                     result = jit_func(*inputs)
@@ -73,8 +73,7 @@ def _run_simple_op_benchmark(num_input, op, config, mode='forward', warmup=10, r
             else:
                 def grad_func(*args):
                     return jax.numpy.sum(func(*args))
-                jit_func = jax.jit(jax.grad(grad_func, list(range(num_input))),
-                                   list(range(num_input)))
+                jit_func = jax.jit(jax.grad(grad_func, list(range(num_input))))
 
                 def benchmark_func(inputs):
                     result = jit_func(*inputs)
