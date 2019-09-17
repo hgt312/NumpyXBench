@@ -25,6 +25,11 @@ Binary operators
     reports/multiply
     reports/divide
     reports/mod
+    reports/broadcast_add
+    reports/broadcast_subtract
+    reports/broadcast_multiply
+    reports/broadcast_divide
+    reports/broadcast_mod
 
 Unary operators
 ****************

@@ -8,7 +8,7 @@ from numpy import random as nd
 
 from .config_spaces import *
 
-__all__ = ['get_random_shape_config', 'get_random_size_config', 'get_random_withaxis_config',
+__all__ = ['get_random_shape_config', 'get_random_size_config', 'get_random_withaxis_config', 'get_broadcast_configs',
            'get_size_configs', 'get_random_arange_config', 'get_random_linspace_config', 'get_size_axis_configs']
 
 
@@ -50,6 +50,17 @@ def get_size_configs(dtypes):
                {'shape': (32, 224, 224, 3), 'dtype': dtype},
                {'shape': (64, 3, 224, 224), 'dtype': dtype},
                {'shape': (100, 100, 100, 10), 'dtype': dtype}]
+    return configs
+
+
+def get_broadcast_configs(dtypes):
+    dtype = dtypes[0]
+    configs = [{'shape1': (1, 28, 28), 'shape2': (1, 28), 'dtype': dtype},
+               {'shape1': (64, 28, 28), 'shape2': (1, 28), 'dtype': dtype},
+               {'shape1': (32, 3, 224, 224), 'shape2': (1, 224, 224), 'dtype': dtype},
+               {'shape1': (32, 224, 224, 3), 'shape2': (1, 224, 224), 'dtype': dtype},
+               {'shape1': (64, 3, 224, 224), 'shape2': (64, 3, 1, 1), 'dtype': dtype},
+               {'shape1': (100, 100, 100, 10), 'shape2': (10, ), 'dtype': dtype}]
     return configs
 
 
