@@ -4,7 +4,9 @@ from ..utils.benchmarks import *
 
 from .toolkit import Toolkit
 
-__all__ = ['add_toolkit', 'subtract_toolkit', 'multiply_toolkit', 'divide_toolkit', 'mod_toolkit']
+__all__ = ['add_toolkit', 'subtract_toolkit', 'multiply_toolkit', 'divide_toolkit', 'mod_toolkit',
+           'broadcast_add_toolkit', 'broadcast_subtract_toolkit', 'broadcast_multiply_toolkit',
+           'broadcast_divide_toolkit', 'broadcast_mod_toolkit']
 
 
 # elemwise binary ops
