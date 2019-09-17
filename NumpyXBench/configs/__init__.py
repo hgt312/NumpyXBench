@@ -58,7 +58,7 @@ def get_broadcast_configs(dtypes):
     configs = [{'shape1': (1, 28, 28), 'shape2': (1, 28), 'dtype': dtype},
                {'shape1': (64, 28, 28), 'shape2': (1, 28), 'dtype': dtype},
                {'shape1': (32, 3, 224, 224), 'shape2': (1, 224, 224), 'dtype': dtype},
-               {'shape1': (32, 224, 224, 3), 'shape2': (1, 224, 224), 'dtype': dtype},
+               {'shape1': (32, 224, 224, 3), 'shape2': (1, 224, 3), 'dtype': dtype},
                {'shape1': (64, 3, 224, 224), 'shape2': (64, 3, 1, 1), 'dtype': dtype},
                {'shape1': (100, 100, 100, 10), 'shape2': (10, ), 'dtype': dtype}]
     return configs
