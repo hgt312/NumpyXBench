@@ -201,10 +201,13 @@ def use_html_template(filename):
         f.writelines(html)
 
 
-def generate_one_rst(toolkit_name):
+def generate_one_rst(toolkit_name, full_update=False):
     toolkit = getattr(toolkits, toolkit_name)
     base_path = os.path.dirname(os.path.abspath(__file__))
     op_name = toolkit.get_name()
+    rst_file = os.path.join(base_path, '../doc/reports', op_name + '.rst')
+    if os.path.exists(rst_file) and not full_update:
+        return True
     content = """Operator `{0}`
 ==========={1}
 
@@ -216,9 +219,9 @@ def generate_one_rst(toolkit_name):
         for dtype in toolkit.get_backward_dtypes():
             html_filename = "{0}_b_{1}.html".format(op_name, dtype)
             content += ".. include:: /_static/temp/{0}\n\n".format(html_filename)
-    rst_file = os.path.join(base_path, '../doc/reports', op_name + '.rst')
     with open(rst_file, mode='w') as f:
         f.write(content)
+    return False
 
 
 def generate_one_html(toolkit_name, dtype, mode, warmup, runs, info):
@@ -244,7 +247,10 @@ def generate_one_html(toolkit_name, dtype, mode, warmup, runs, info):
         use_html_template(html_file)
 
 
-def generate_one_report(toolkit_name, warmup, runs, info):
+def generate_one_report(toolkit_name, warmup, runs, info, full_update=False):
+    flag = generate_one_rst(toolkit_name, full_update)
+    if flag:
+        return
     toolkit = getattr(toolkits, toolkit_name)
     op_name = toolkit.get_name()
     for dtype in toolkit.get_forward_dtypes():
@@ -255,21 +261,19 @@ def generate_one_report(toolkit_name, warmup, runs, info):
     if toolkit.get_backward_dtypes():
         for dtype in toolkit.get_backward_dtypes():
             cmd_line = 'python3 -c "from NumpyXBench.tools import generate_one_html; ' \
-                       'generate_one_html(\'{0}\', \'{1}\', \'both\', {2}, {3}, \'{4}\')"'.format(toolkit_name,
-                                                                                                     dtype,
-                                                                                                     warmup, runs, info)
+                       'generate_one_html(\'{0}\', \'{1}\', \'both\', {2}, {3}, \'{4}\')"'.format(toolkit_name, dtype,
+                                                                                                  warmup, runs, info)
             os.system(cmd_line)
-    generate_one_rst(toolkit_name)
     print("Done report generation for `{0}`!".format(op_name))
 
 
-def generate_operator_reports(warmup=10, runs=25, info=None):
+def generate_operator_reports(warmup=10, runs=25, info=None, full_update=False):
     toolkit_list = dir(toolkits)
     toolkit_list = [i for i in toolkit_list if i.endswith('_toolkit')]
     for toolkit_name in toolkit_list:
         # cmd_line = 'python3 -c "from NumpyXBench.tools import generate_one_report; ' \
         #       'generate_one_report(\'{0}\', {1}, {2}, \'{3}\')"'.format(toolkit_name, warmup, runs, info)
-        generate_one_report(toolkit_name, warmup, runs, info)
+        generate_one_report(toolkit_name, warmup, runs, info, full_update)
 
 
 if __name__ == "__main__":
@@ -278,9 +282,10 @@ if __name__ == "__main__":
     parser.add_argument("--runs", default=25, type=int)
     parser.add_argument("--info", default=None, type=str)
     parser.add_argument("--device", default="cpu", type=str)
+    parser.add_argument("--full_update", nargs='?', default=False, const=True, type=bool)
     args = parser.parse_args()
     if args.device == "gpu":
         global_set_gpu()
     else:
         global_set_cpu()
-    generate_operator_reports(args.warmup, args.runs, args.info)
+    generate_operator_reports(args.warmup, args.runs, args.info, args.full_update)
