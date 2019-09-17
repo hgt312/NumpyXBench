@@ -13,9 +13,9 @@ I divide opertors into several categories:
 
 Totally, there are 497 operators generated.
 
-| MXNet (numpy branch) | ChainerX | JAX   |
-| -------------------- | -------- | ----- |
-| 17.0%                | 23.8%    | 42.1% |
+| MXNet | ChainerX | JAX   |
+| ----- | -------- | ----- |
+| 17.8% | 23.8%    | 42.1% |
 
 ## Install
 
@@ -37,9 +37,11 @@ pip install -e .
 
 ### Install backends
 
-1. Install MXNet from source (switch to numpy branch):
+1. Install MXNet from source:
 
    http://mxnet.incubator.apache.org/versions/master/install/ubuntu_setup.html
+
+   With TVM support, add `-DUSE_TVM_OP=ON`.
 
 2. Install Jax
 
