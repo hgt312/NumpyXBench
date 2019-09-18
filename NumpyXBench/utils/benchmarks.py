@@ -31,12 +31,15 @@ def _run_simple_op_benchmark(num_input, op, config, mode='forward', warmup=10, r
         tensor_config = {'shape': config_.pop('shape'), 'dtype': config_.pop('dtype')} if num_input else None
         func = functools.partial(func, **config_)
         if backend == 'numpy':
-            def benchmark_func(inputs):
-                result = func(*inputs)
-                return result
-            input_func = functools.partial(prepare_numpy_inputs, num_input, tensor_config)
-            forward_time, forward_std = get_time_metric(benchmark_func, input_func, warmup, runs)
-            return (forward_time, forward_std), config
+            if mode == 'forward':
+                def benchmark_func(inputs):
+                    result = func(*inputs)
+                    return result
+                input_func = functools.partial(prepare_numpy_inputs, num_input, tensor_config)
+                forward_time, forward_std = get_time_metric(benchmark_func, input_func, warmup, runs)
+                return (forward_time, forward_std), config
+            else:
+                return (None, None), config
         elif backend == 'mxnet.numpy':
             if mode == 'forward':
                 def benchmark_func(inputs):
@@ -46,15 +49,16 @@ def _run_simple_op_benchmark(num_input, op, config, mode='forward', warmup=10, r
                 forward_time, forward_std = get_time_metric(benchmark_func, input_func, warmup, runs)
                 return (forward_time, forward_std), config
             else:
-                input_func = functools.partial(prepare_mxnet_inputs, num_input, tensor_config, True)
-
-                def run_graph(inputs):
+                def input_func():
+                    inputs = prepare_mxnet_inputs(num_input, tensor_config, True)
                     with mxnet.autograd.record():
                         result = func(*inputs)
-                    result.backward()
                     return result
-                both_time, both_std = get_time_metric(run_graph, input_func, warmup, runs)
-                return (both_time, both_std), config
+
+                def benchmark_func(result):
+                    result.backward()
+                backward_time, backward_std = get_time_metric(benchmark_func, input_func, warmup, runs)
+                return (backward_time, backward_std), config
         elif backend == 'jax.numpy':
             input_func = functools.partial(prepare_jax_inputs, num_input, tensor_config)
             if mode == 'forward':
@@ -82,8 +86,8 @@ def _run_simple_op_benchmark(num_input, op, config, mode='forward', warmup=10, r
                     except Exception:
                         pass
                     return result
-                both_time, both_std = get_time_metric(benchmark_func, input_func, warmup, runs)
-                return (both_time, both_std), config
+                backward_time, backward_std = get_time_metric(benchmark_func, input_func, warmup, runs)
+                return (backward_time, backward_std), config
         elif backend == 'chainerx':
             device = chainerx.get_default_device()
             if mode == 'forward':
@@ -96,20 +100,24 @@ def _run_simple_op_benchmark(num_input, op, config, mode='forward', warmup=10, r
                 forward_time, forward_std = get_time_metric(benchmark_func, input_func, warmup, runs)
                 return (forward_time, forward_std), config
             else:
-                input_func = functools.partial(prepare_chainerx_inputs, num_input, tensor_config, True)
-
-                def run_graph(inputs):
+                def input_func():
+                    inputs = prepare_chainerx_inputs(num_input, tensor_config, True)
                     result = func(*inputs)
                     result.grad = chainerx.ones_like(result)
+                    return result
+
+                def benchmark_func(result):
                     result.backward()
                     device.synchronize()
-                    return result
-                both_time, both_std = get_time_metric(run_graph, input_func, warmup, runs)
-                return (both_time, both_std), config
+                backward_time, backward_std = get_time_metric(benchmark_func, input_func, warmup, runs)
+                return (backward_time, backward_std), config
     else:
-        func = functools.partial(func, **config)
-        forward_time, forward_std = get_time_metric(func, None, warmup, runs)
-        return (forward_time, forward_std), config
+        if mode == 'forward':
+            func = functools.partial(func, **config)
+            forward_time, forward_std = get_time_metric(func, None, warmup, runs)
+            return (forward_time, forward_std), config
+        else:
+            return (None, None), config
 
 
 def run_creation_op_benchmark(op, config, mode='forward', warmup=10, runs=25):
@@ -132,14 +140,17 @@ def run_binary_broadcast_op_benchmark(op, config, mode='forward', warmup=10, run
     config1 = {"shape": config["shape1"], "dtype": config["dtype"]}
     config2 = {"shape": config["shape2"], "dtype": config["dtype"]}
     if backend == 'numpy':
-        def benchmark_func(inputs):
-            result = func(*inputs)
-            return result
+        if mode == 'forward':
+            def benchmark_func(inputs):
+                result = func(*inputs)
+                return result
 
-        def input_func():
-            return prepare_numpy_inputs(1, config1) + prepare_numpy_inputs(1, config2)
-        forward_time, forward_std = get_time_metric(benchmark_func, input_func, warmup, runs)
-        return (forward_time, forward_std), config
+            def input_func():
+                return prepare_numpy_inputs(1, config1) + prepare_numpy_inputs(1, config2)
+            forward_time, forward_std = get_time_metric(benchmark_func, input_func, warmup, runs)
+            return (forward_time, forward_std), config
+        else:
+            return (None, None), config
     elif backend == 'mxnet.numpy':
         if mode == 'forward':
             def benchmark_func(inputs):
@@ -152,16 +163,17 @@ def run_binary_broadcast_op_benchmark(op, config, mode='forward', warmup=10, run
             return (forward_time, forward_std), config
         else:
             def input_func():
-                return prepare_mxnet_inputs(1, config1, True) + prepare_mxnet_inputs(1, config2, True)
-
-            def run_graph(inputs):
+                inputs = prepare_mxnet_inputs(1, config1, True) + prepare_mxnet_inputs(1, config2, True)
                 with mxnet.autograd.record():
                     result = func(*inputs)
+                return result
+
+            def benchmark_func(result):
                 result.backward()
                 return result
 
-            both_time, both_std = get_time_metric(run_graph, input_func, warmup, runs)
-            return (both_time, both_std), config
+            backward_time, backward_std = get_time_metric(benchmark_func, input_func, warmup, runs)
+            return (backward_time, backward_std), config
     elif backend == 'jax.numpy':
         def input_func():
             return prepare_jax_inputs(1, config1) + prepare_jax_inputs(1, config2)
@@ -192,8 +204,8 @@ def run_binary_broadcast_op_benchmark(op, config, mode='forward', warmup=10, run
                     pass
                 return result
 
-            both_time, both_std = get_time_metric(benchmark_func, input_func, warmup, runs)
-            return (both_time, both_std), config
+            backward_time, backward_std = get_time_metric(benchmark_func, input_func, warmup, runs)
+            return (backward_time, backward_std), config
     elif backend == 'chainerx':
         device = chainerx.get_default_device()
         if mode == 'forward':
@@ -209,17 +221,17 @@ def run_binary_broadcast_op_benchmark(op, config, mode='forward', warmup=10, run
             return (forward_time, forward_std), config
         else:
             def input_func():
-                return prepare_chainerx_inputs(1, config1, True) + prepare_chainerx_inputs(1, config2, True)
-
-            def run_graph(inputs):
+                inputs = prepare_chainerx_inputs(1, config1, True) + prepare_chainerx_inputs(1, config2, True)
                 result = func(*inputs)
                 result.grad = chainerx.ones_like(result)
-                result.backward()
-                device.synchronize()
                 return result
 
-            both_time, both_std = get_time_metric(run_graph, input_func, warmup, runs)
-            return (both_time, both_std), config
+            def benchmark_func(result):
+                result.backward()
+                device.synchronize()
+
+            backward_time, backward_std = get_time_metric(benchmark_func, input_func, warmup, runs)
+            return (backward_time, backward_std), config
 
 
 def run_op_frameworks_benchmark(opc, config_func, benchmark_func, backends,

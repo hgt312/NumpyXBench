@@ -241,9 +241,9 @@ def generate_one_html(toolkit_name, dtype, mode, warmup, runs, info):
         html_filename = "{0}_b_{1}.html".format(op_name, dtype)
         html_file = os.path.join(base_path, '../doc/_static/temp', html_filename)
         data = run_op_frameworks_benchmark(*toolkit.get_tools([dtype], False),
-                                           backends, 'both', 6, warmup, runs)
+                                           backends, 'backward', 6, warmup, runs)
         draw_one_backward_plot(op_name, data, mode='file', filename=html_file,
-                               info=info + ", {0}, with backward".format(dtype) if info else None)
+                               info=info + ", {0}, backward only".format(dtype) if info else None)
         use_html_template(html_file)
 
 
@@ -261,8 +261,9 @@ def generate_one_report(toolkit_name, warmup, runs, info, full_update=False):
     if toolkit.get_backward_dtypes():
         for dtype in toolkit.get_backward_dtypes():
             cmd_line = 'python3 -c "from NumpyXBench.tools import generate_one_html; ' \
-                       'generate_one_html(\'{0}\', \'{1}\', \'both\', {2}, {3}, \'{4}\')"'.format(toolkit_name, dtype,
-                                                                                                  warmup, runs, info)
+                       'generate_one_html(\'{0}\', \'{1}\', \'backward\', {2}, {3}, \'{4}\')"'.format(toolkit_name,
+                                                                                                      dtype, warmup,
+                                                                                                      runs, info)
             os.system(cmd_line)
     print("Done report generation for `{0}`!".format(op_name))
 
