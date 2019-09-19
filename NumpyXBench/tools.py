@@ -3,13 +3,6 @@ from itertools import chain
 import pprint
 import os
 
-try:
-    import mxnet
-    import chainerx
-    import jax
-except Exception:
-    pass
-
 from bokeh.embed import components
 from bokeh.io import show, output_file, output_notebook
 from bokeh.models import ColumnDataSource, FactorRange
@@ -22,18 +15,7 @@ from .utils.common import backend_switcher
 from .utils.benchmarks import run_op_frameworks_benchmark
 
 __all__ = ['test_numpy_coverage', 'test_all_operators', 'draw_one_plot', 'test_operators', 'draw_one_backward_plot',
-           'generate_operator_reports', 'global_set_cpu', 'global_set_gpu', 'generate_one_report', 'generate_one_html',
-           'generate_one_rst']
-
-
-def global_set_gpu():
-    mxnet.test_utils.set_default_context(mxnet.gpu(0))
-    chainerx.set_default_device('cuda:0')
-
-
-def global_set_cpu():
-    mxnet.test_utils.set_default_context(mxnet.cpu())
-    chainerx.set_default_device('native')
+           'generate_operator_reports', 'generate_one_report', 'generate_one_html', 'generate_one_rst']
 
 
 def test_numpy_coverage(backend_name):
@@ -247,7 +229,7 @@ def generate_one_html(toolkit_name, dtype, mode, warmup, runs, info):
         use_html_template(html_file)
 
 
-def generate_one_report(toolkit_name, warmup, runs, info, full_update=False):
+def generate_one_report(toolkit_name, warmup, runs, info, device="cpu", full_update=False):
     flag = generate_one_rst(toolkit_name, full_update)
     if flag:
         return
@@ -255,26 +237,30 @@ def generate_one_report(toolkit_name, warmup, runs, info, full_update=False):
     op_name = toolkit.get_name()
     for dtype in toolkit.get_forward_dtypes():
         cmd_line = 'python3 -c "from NumpyXBench.tools import generate_one_html; ' \
+                   'from NumpyXBench.utils import global_set_{5}; global_set_{5}(); ' \
                    'generate_one_html(\'{0}\', \'{1}\', \'forward\', {2}, {3}, \'{4}\')"'.format(toolkit_name, dtype,
-                                                                                                 warmup, runs, info)
+                                                                                                 warmup, runs, info,
+                                                                                                 device)
         os.system(cmd_line)
     if toolkit.get_backward_dtypes():
         for dtype in toolkit.get_backward_dtypes():
             cmd_line = 'python3 -c "from NumpyXBench.tools import generate_one_html; ' \
+                       'from NumpyXBench.utils import global_set_{5}; global_set_{5}(); ' \
                        'generate_one_html(\'{0}\', \'{1}\', \'backward\', {2}, {3}, \'{4}\')"'.format(toolkit_name,
                                                                                                       dtype, warmup,
-                                                                                                      runs, info)
+                                                                                                      runs, info,
+                                                                                                      device)
             os.system(cmd_line)
     print("Done report generation for `{0}`!".format(op_name))
 
 
-def generate_operator_reports(warmup=10, runs=25, info=None, full_update=False):
+def generate_operator_reports(warmup=10, runs=25, info=None, device="cpu", full_update=False):
     toolkit_list = dir(toolkits)
     toolkit_list = [i for i in toolkit_list if i.endswith('_toolkit')]
     for toolkit_name in toolkit_list:
         # cmd_line = 'python3 -c "from NumpyXBench.tools import generate_one_report; ' \
         #       'generate_one_report(\'{0}\', {1}, {2}, \'{3}\')"'.format(toolkit_name, warmup, runs, info)
-        generate_one_report(toolkit_name, warmup, runs, info, full_update)
+        generate_one_report(toolkit_name, warmup, runs, info, device, full_update)
 
 
 if __name__ == "__main__":
@@ -285,8 +271,4 @@ if __name__ == "__main__":
     parser.add_argument("--device", default="cpu", type=str)
     parser.add_argument("--full_update", nargs='?', default=False, const=True, type=bool)
     args = parser.parse_args()
-    if args.device == "gpu":
-        global_set_gpu()
-    else:
-        global_set_cpu()
-    generate_operator_reports(args.warmup, args.runs, args.info, args.full_update)
+    generate_operator_reports(args.warmup, args.runs, args.info, args.device, args.full_update)
