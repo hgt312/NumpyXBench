@@ -47,6 +47,7 @@ Unary operators
     reports/ceil
     reports/cos
     reports/cosh
+    reports/deg2rad
     reports/degrees
     reports/exp
     reports/expm1
@@ -57,6 +58,7 @@ Unary operators
     reports/log1p
     reports/log2
     reports/logical_not
+    reports/rad2deg
     reports/radians
     reports/reciprocal
     reports/rint

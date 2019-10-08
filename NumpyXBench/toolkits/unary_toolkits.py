@@ -9,7 +9,7 @@ __all__ = ['abs_toolkit', 'arccos_toolkit', 'arccosh_toolkit', 'arcsin_toolkit',
            'degrees_toolkit', 'exp_toolkit', 'expm1_toolkit', 'fix_toolkit', 'floor_toolkit', 'log_toolkit',
            'log10_toolkit', 'log1p_toolkit', 'log2_toolkit', 'logical_not_toolkit', 'radians_toolkit',
            'reciprocal_toolkit', 'rint_toolkit', 'sign_toolkit', 'sin_toolkit', 'sinh_toolkit', 'sqrt_toolkit',
-           'square_toolkit', 'tan_toolkit', 'tanh_toolkit', 'trunc_toolkit']
+           'square_toolkit', 'tan_toolkit', 'tanh_toolkit', 'trunc_toolkit', 'deg2rad_toolkit', 'rad2deg_toolkit']
 
 
 # unary ops
@@ -172,3 +172,13 @@ trunc_toolkit = Toolkit(has_backward=True, operator_cls=ops.Trunc,
                         random_config_func=get_random_size_config,
                         determined_config_func=get_size_configs,
                         benchmark_func=run_unary_op_benchmark)
+
+deg2rad_toolkit = Toolkit(has_backward=True, operator_cls=ops.Deg2rad,
+                          random_config_func=get_random_size_config,
+                          determined_config_func=get_size_configs,
+                          benchmark_func=run_unary_op_benchmark)
+
+rad2deg_toolkit = Toolkit(has_backward=True, operator_cls=ops.Rad2deg,
+                          random_config_func=get_random_size_config,
+                          determined_config_func=get_size_configs,
+                          benchmark_func=run_unary_op_benchmark)
