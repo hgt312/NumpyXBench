@@ -33,10 +33,10 @@ def test_numpy_coverage(backend_name):
                 try:
                     func(*([{}] * 15))
                 except NotImplementedError:
-                    res['passed'].append((op_name.lower(), op.__module__.split('.')[-1]))
-                except (TypeError, ValueError, AttributeError, RuntimeError):
                     flag = False
                     res['failed'].append((op_name.lower(), op.__module__.split('.')[-1]))
+                except (TypeError, ValueError, AttributeError, RuntimeError):
+                    res['passed'].append((op_name.lower(), op.__module__.split('.')[-1]))
             else:
                 flag = False
                 res['failed'].append((op_name.lower(), op.__module__.split('.')[-1]))
